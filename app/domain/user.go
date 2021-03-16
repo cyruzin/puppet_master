@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// User represente the user's model.
+// User represent the user's model.
 type User struct {
 	ID          int64     `json:"id"`
 	Name        string    `json:"name"`
