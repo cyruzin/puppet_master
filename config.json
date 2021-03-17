@@ -1,0 +1,17 @@
+{
+  "debug": true,
+  "server": {
+    "address": ":8000"
+  },
+  "context": {
+    "timeout": 2
+  },
+  "database": {
+    "driver": "pgx",
+    "host": "localhost",
+    "port": "5432",
+    "user": "puppet",
+    "pass": "master",
+    "name": "puppet_master"
+  }
+}

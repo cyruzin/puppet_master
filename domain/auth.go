@@ -12,4 +12,5 @@ type AuthUsecase interface {
 	ChangePassword(ctx context.Context) (bool, error)
 	ResetPassword(ctx context.Context) (bool, error)
 	GenerateToken(ctx context.Context) (string, error)
+	GetTokenInfo(ctx context.Context) (string, error)
 }
