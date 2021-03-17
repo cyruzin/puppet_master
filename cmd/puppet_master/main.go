@@ -38,6 +38,8 @@ func main() {
 
 	dbConnection := databaseConnection(ctx, dbDriver, dataSourceName)
 
+	defer dbConnection.Close()
+
 	log.Println(dbConnection.DriverName())
 }
 

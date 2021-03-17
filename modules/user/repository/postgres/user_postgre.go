@@ -45,6 +45,11 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.User
 }
 
 func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return err
+	}
+
 	query := `
 	  INSERT INTO users ( 
 		name, 
@@ -57,7 +62,7 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 		VALUES (?, ?, ?, ?, ?, ?)
 		`
 
-	_, err := p.Conn.ExecContext(
+	_, err = p.Conn.ExecContext(
 		ctx,
 		query,
 		user.Name,
@@ -68,13 +73,20 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 		user.UpdatedAt,
 	)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
+	tx.Commit()
 	return nil
 }
 
 func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return err
+	}
+
 	query := `
 		UPDATE users
 		SET 
@@ -97,37 +109,50 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error
 		user.ID,
 	)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	if rowsAffected == 0 {
+		tx.Rollback()
 		return errors.New("the resource you requested could not be found")
 	}
 
+	tx.Commit()
 	return nil
 }
 
 func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return err
+	}
+
 	query := "DELETE FROM users WHERE id = ?"
 
 	result, err := p.Conn.ExecContext(ctx, query, id)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	if rowsAffected == 0 {
+		tx.Rollback()
 		return errors.New("the resource you requested could not be found")
 	}
 
+	tx.Commit()
 	return nil
 }
