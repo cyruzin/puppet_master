@@ -76,4 +76,37 @@ func TestFetch(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, usersList, 2)
+	assert.Equal(t, usersList[0].Email, "homer@simpsons.org")
+}
+
+func TestGetByID(t *testing.T) {
+	db, mock, err := sqlxmock.Newx()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	defer db.Close()
+
+	rows := sqlxmock.NewRows([]string{
+		"id",
+		"name",
+		"email",
+		"password",
+		"superadmin",
+		"created_at",
+		"updated_at",
+	}).
+		AddRow(1, "Homer Simpson", "homer@simpsons.org", "123", true, time.Now(), time.Now())
+
+	query := "SELECT \\* FROM users WHERE id = \\?"
+
+	mock.ExpectQuery(query).WillReturnRows(rows)
+
+	userRepo := postgreRepository.NewPostgreUserRepository(db)
+
+	currentUser, err := userRepo.GetByID(context.Background(), 1)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, currentUser)
+	assert.Equal(t, "Homer Simpson", currentUser.Name)
 }
