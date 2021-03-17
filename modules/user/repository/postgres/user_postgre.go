@@ -23,7 +23,7 @@ func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.User, error) {
 
 	result := make([]*domain.User, 0)
 
-	err := p.Conn.SelectContext(ctx, result, query)
+	err := p.Conn.SelectContext(ctx, &result, query)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
