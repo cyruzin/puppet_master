@@ -25,7 +25,7 @@ type PermissionUsecase interface {
 
 // PermissionRepository represent the permission's repository contract.
 type PermissionRepository interface {
-	Fetch(ctx context.Context, num int64) ([]*Permission, error)
+	Fetch(ctx context.Context) ([]*Permission, error)
 	GetByID(ctx context.Context, id int64) (*Permission, error)
 	Update(ctx context.Context, permission *Permission) error
 	Store(ctx context.Context, permission *Permission) error

@@ -25,7 +25,7 @@ type RoleUsecase interface {
 
 // RoleRepository represent the role's repository contract.
 type RoleRepository interface {
-	Fetch(ctx context.Context, num int64) ([]*Role, error)
+	Fetch(ctx context.Context) ([]*Role, error)
 	GetByID(ctx context.Context, id int64) (*Role, error)
 	Update(ctx context.Context, role *Role) error
 	Store(ctx context.Context, role *Role) error
