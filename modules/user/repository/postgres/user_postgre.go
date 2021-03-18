@@ -55,7 +55,7 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 		name, 
 		email, 
 		password,
-		superadmin 
+		superadmin,
 		created_at, 
 		updated_at
 		)
