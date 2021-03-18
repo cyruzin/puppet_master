@@ -18,8 +18,8 @@ type Permission struct {
 type PermissionUsecase interface {
 	Fetch(ctx context.Context) ([]*Permission, string, error)
 	GetByID(ctx context.Context, id int64) (*Permission, error)
-	Update(ctx context.Context, permission *Permission) error
 	Store(ctx context.Context, permission *Permission) error
+	Update(ctx context.Context, permission *Permission) error
 	Delete(ctx context.Context, id int64) error
 }
 
@@ -27,7 +27,7 @@ type PermissionUsecase interface {
 type PermissionRepository interface {
 	Fetch(ctx context.Context) ([]*Permission, error)
 	GetByID(ctx context.Context, id int64) (*Permission, error)
-	Update(ctx context.Context, permission *Permission) error
 	Store(ctx context.Context, permission *Permission) error
+	Update(ctx context.Context, permission *Permission) error
 	Delete(ctx context.Context, id int64) error
 }

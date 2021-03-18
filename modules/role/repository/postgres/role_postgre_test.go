@@ -159,7 +159,7 @@ func TestStore(t *testing.T) {
 		created_at, 
 		updated_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?)
 		`
 
 	mock.ExpectBegin()
@@ -193,7 +193,7 @@ func TestStoreFailure(t *testing.T) {
 		created_at, 
 		updated_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?)
 		`
 
 	mock.ExpectBegin()

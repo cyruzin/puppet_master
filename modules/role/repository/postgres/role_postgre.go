@@ -57,7 +57,7 @@ func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) error 
 		created_at, 
 		updated_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?)
 		`
 
 	_, err = p.Conn.ExecContext(

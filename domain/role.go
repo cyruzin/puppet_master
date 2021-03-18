@@ -18,8 +18,8 @@ type Role struct {
 type RoleUsecase interface {
 	Fetch(ctx context.Context) ([]*Role, string, error)
 	GetByID(ctx context.Context, id int64) (*Role, error)
-	Update(ctx context.Context, role *Role) error
 	Store(ctx context.Context, role *Role) error
+	Update(ctx context.Context, role *Role) error
 	Delete(ctx context.Context, id int64) error
 }
 
@@ -27,7 +27,7 @@ type RoleUsecase interface {
 type RoleRepository interface {
 	Fetch(ctx context.Context) ([]*Role, error)
 	GetByID(ctx context.Context, id int64) (*Role, error)
-	Update(ctx context.Context, role *Role) error
 	Store(ctx context.Context, role *Role) error
+	Update(ctx context.Context, role *Role) error
 	Delete(ctx context.Context, id int64) error
 }
