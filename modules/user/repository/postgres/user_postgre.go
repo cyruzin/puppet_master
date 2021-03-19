@@ -7,6 +7,7 @@ import (
 
 	"github.com/cyruzin/puppet_master/domain"
 	"github.com/jmoiron/sqlx"
+	"github.com/rs/zerolog/log"
 )
 
 type postgreRepository struct {
@@ -25,6 +26,7 @@ func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.User, error) {
 
 	err := p.Conn.SelectContext(ctx, &result, query)
 	if err != nil && err != sql.ErrNoRows {
+		log.Error().Stack().Err(err)
 		return nil, err
 	}
 
@@ -38,6 +40,7 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.User
 
 	err := p.Conn.GetContext(ctx, &user, query, id)
 	if err != nil && err != sql.ErrNoRows {
+		log.Error().Stack().Err(err)
 		return nil, err
 	}
 
@@ -47,6 +50,7 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.User
 func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
+		log.Error().Stack().Err(err)
 		return err
 	}
 
@@ -73,6 +77,7 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 		user.UpdatedAt,
 	)
 	if err != nil {
+		log.Error().Stack().Err(err)
 		tx.Rollback()
 		return err
 	}
@@ -84,6 +89,7 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
+		log.Error().Stack().Err(err)
 		return err
 	}
 
@@ -109,12 +115,14 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error
 		user.ID,
 	)
 	if err != nil {
+		log.Error().Stack().Err(err)
 		tx.Rollback()
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		log.Error().Stack().Err(err)
 		tx.Rollback()
 		return err
 	}
@@ -131,6 +139,7 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error
 func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
+		log.Error().Stack().Err(err)
 		return err
 	}
 
@@ -138,12 +147,14 @@ func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 
 	result, err := p.Conn.ExecContext(ctx, query, id)
 	if err != nil {
+		log.Error().Stack().Err(err)
 		tx.Rollback()
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		log.Error().Stack().Err(err)
 		tx.Rollback()
 		return err
 	}

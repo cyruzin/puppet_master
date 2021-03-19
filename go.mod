@@ -9,6 +9,7 @@ require (
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rs/zerolog v1.20.0
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
