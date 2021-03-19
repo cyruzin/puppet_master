@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"os"
 
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
 	"github.com/spf13/viper"
 )
 
@@ -16,8 +19,15 @@ func init() {
 		panic(err)
 	}
 
-	if viper.GetBool(`debug`) {
-		log.Println("running in DEBUG mode")
+	env := viper.GetBool(`debug`)
+
+	if env {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		log.Debug().Msg("running in DEVELOPMENT mode")
+	} else {
+		log.Debug().Msg("running in PRODUCTION mode")
+		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+		zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	}
 }
 
@@ -40,7 +50,8 @@ func main() {
 
 	defer dbConnection.Close()
 
-	log.Println(dbConnection.DriverName())
+	// TODO: Implement connection
+	log.Info().Str("driver", dbConnection.DriverName())
 }
 
 func databaseConnection(
@@ -50,11 +61,19 @@ func databaseConnection(
 ) *sqlx.DB {
 	db, err := sqlx.ConnectContext(ctx, driverName, dataSourceName)
 	if err != nil {
-		log.Fatalln("could not connect to the database. error: ", err)
+		log.Fatal().
+			Err(err).
+			Stack().
+			Str("database", db.DriverName()).
+			Msg("could not connect to the database")
 	}
 
 	if err := db.PingContext(ctx); err != nil {
-		log.Fatalln("could not ping the database. error: ", err)
+		log.Fatal().
+			Err(err).
+			Stack().
+			Str("database", db.DriverName()).
+			Msg("could not ping the database")
 	}
 
 	return db
