@@ -18,7 +18,7 @@ type User struct {
 
 // UserUsecase represent the user's usecases.
 type UserUsecase interface {
-	Fetch(ctx context.Context) ([]*User, string, error)
+	Fetch(ctx context.Context) ([]*User, error)
 	GetByID(ctx context.Context, id int64) (*User, error)
 	Store(ctx context.Context, user *User) error
 	Update(ctx context.Context, user *User) error
