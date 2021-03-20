@@ -3,8 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
+	gql "github.com/cyruzin/puppet_master/modules/user/delivery/graphql"
+	userRepo "github.com/cyruzin/puppet_master/modules/user/repository/postgres"
+	userUserCase "github.com/cyruzin/puppet_master/modules/user/usecase"
+	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/handler"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
@@ -40,7 +46,6 @@ func main() {
 	dbPass := viper.GetString(`database.pass`)
 	dbName := viper.GetString(`database.name`)
 
-	// Postgre connection string
 	dataSourceName := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbUser, dbPass, dbName,
@@ -50,8 +55,27 @@ func main() {
 
 	defer dbConnection.Close()
 
-	// TODO: Implement connection
-	log.Info().Str("driver", dbConnection.DriverName())
+	ur := userRepo.NewPostgreUserRepository(dbConnection)
+	uc := userUserCase.NewUserUsecase(ur)
+	root := gql.NewRoot(uc)
+
+	var schema, _ = graphql.NewSchema(graphql.SchemaConfig{
+		Query:    root.Query,
+		Mutation: nil,
+	})
+
+	h := handler.New(&handler.Config{
+		Schema:   &schema,
+		Pretty:   true,
+		GraphiQL: true,
+	})
+
+	log.Info().Msg("the server is running on port: 8000")
+
+	http.Handle("/graphql", h)
+	if err := http.ListenAndServe(":8000", nil); err != nil {
+		log.Fatal().Stack().Err(err).Msg("")
+	}
 }
 
 func databaseConnection(

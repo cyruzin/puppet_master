@@ -34,7 +34,7 @@ func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.User, error) {
 }
 
 func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.User, error) {
-	query := `SELECT * FROM users WHERE id = ?`
+	query := `SELECT * FROM users WHERE id = $1`
 
 	user := domain.User{}
 
