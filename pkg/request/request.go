@@ -24,6 +24,7 @@ func InvalidRequest(
 	httpCode int,
 ) {
 	log.Error().
+		Stack().
 		Err(err).
 		Str("method", r.Method).
 		Str("url", r.URL.String()).
