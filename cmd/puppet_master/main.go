@@ -6,9 +6,14 @@ import (
 	"net/http"
 	"os"
 
-	gql "github.com/cyruzin/puppet_master/modules/user/delivery/graphql"
+	permissionRepo "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
+	permissionUseCase "github.com/cyruzin/puppet_master/modules/permission/usecase"
+	roleRepo "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
+	roleUseCase "github.com/cyruzin/puppet_master/modules/role/usecase"
+	gql "github.com/cyruzin/puppet_master/modules/shared/delivery/graphql"
 	userRepo "github.com/cyruzin/puppet_master/modules/user/repository/postgres"
-	userUserCase "github.com/cyruzin/puppet_master/modules/user/usecase"
+	userUseCase "github.com/cyruzin/puppet_master/modules/user/usecase"
+
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
 	_ "github.com/jackc/pgx/stdlib"
@@ -55,13 +60,20 @@ func main() {
 
 	defer dbConnection.Close()
 
-	ur := userRepo.NewPostgreUserRepository(dbConnection)
-	uc := userUserCase.NewUserUsecase(ur)
-	root := gql.NewRoot(uc)
+	pRepo := permissionRepo.NewPostgrePermissionRepository(dbConnection)
+	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
+
+	rRepo := roleRepo.NewPostgreRoleRepository(dbConnection)
+	rCase := roleUseCase.NewRoleUsecase(rRepo)
+
+	uRepo := userRepo.NewPostgreUserRepository(dbConnection)
+	uCase := userUseCase.NewUserUsecase(uRepo)
+
+	root := gql.NewRoot(pCase, rCase, uCase)
 
 	var schema, _ = graphql.NewSchema(graphql.SchemaConfig{
 		Query:    root.Query,
-		Mutation: nil,
+		Mutation: root.Mutation,
 	})
 
 	h := handler.New(&handler.Config{
