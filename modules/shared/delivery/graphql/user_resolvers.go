@@ -54,15 +54,21 @@ func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}
 
 // UserUpdateResolver updates the given user.
 func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
+	id, err := strconv.ParseInt(params.Args["id"].(string), 10, 64)
+	if err != nil {
+		log.Error().Stack().Err(err)
+		return nil, err
+	}
+
 	user := &domain.User{
-		ID:         params.Args["id"].(int64),
+		ID:         id,
 		Name:       params.Args["name"].(string),
 		Email:      params.Args["email"].(string),
 		Password:   params.Args["password"].(string),
 		SuperAdmin: params.Args["superadmin"].(bool),
 	}
 
-	err := r.userUseCase.Update(params.Context, user)
+	err = r.userUseCase.Update(params.Context, user)
 	if err != nil {
 		log.Error().Stack().Err(err)
 		return nil, err
