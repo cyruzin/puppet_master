@@ -35,7 +35,7 @@ func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.Permission, er
 }
 
 func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Permission, error) {
-	query := `SELECT * FROM permissions WHERE id = ?`
+	query := `SELECT * FROM permissions WHERE id = $1`
 
 	permission := domain.Permission{}
 
@@ -62,7 +62,7 @@ func (p *postgreRepository) Store(ctx context.Context, permission *domain.Permis
 		created_at, 
 		updated_at
 		)
-		VALUES (?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4)
 		`
 
 	_, err = p.Conn.ExecContext(
@@ -93,10 +93,10 @@ func (p *postgreRepository) Update(ctx context.Context, permission *domain.Permi
 	query := `
 		UPDATE permissions
 		SET 
-		name = ?, 
-		description = ?,
-		updated_at = ?
-		WHERE id = ?
+		name = $1, 
+		description = $2,
+		updated_at = $3
+		WHERE id = $4
 	`
 
 	result, err := p.Conn.ExecContext(
@@ -136,7 +136,7 @@ func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 		return err
 	}
 
-	query := "DELETE FROM permissions WHERE id = ?"
+	query := "DELETE FROM permissions WHERE id = $1"
 
 	result, err := p.Conn.ExecContext(ctx, query, id)
 	if err != nil {

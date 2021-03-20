@@ -63,7 +63,7 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 		created_at, 
 		updated_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		`
 
 	_, err = p.Conn.ExecContext(
@@ -96,12 +96,12 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error
 	query := `
 		UPDATE users
 		SET 
-		name = ?, 
-		email = ?, 
-		password = ?, 
-		superadmin = ?, 
-		updated_at = ?
-		WHERE id = ?
+		name = $1, 
+		email = $2, 
+		password = $3, 
+		superadmin = $4, 
+		updated_at = $5
+		WHERE id = $6
 	`
 
 	result, err := p.Conn.ExecContext(
@@ -143,7 +143,7 @@ func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 		return err
 	}
 
-	query := "DELETE FROM users WHERE id = ?"
+	query := "DELETE FROM users WHERE id = $1"
 
 	result, err := p.Conn.ExecContext(ctx, query, id)
 	if err != nil {

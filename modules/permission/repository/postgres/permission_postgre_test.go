@@ -103,7 +103,7 @@ func TestGetByID(t *testing.T) {
 	}).
 		AddRow(1, "create articles", "Permission to create articles", time.Now(), time.Now())
 
-	query := "SELECT \\* FROM permissions WHERE id = \\?"
+	query := "SELECT \\* FROM permissions WHERE id = \\$1"
 	mock.ExpectQuery(query).WillReturnRows(rows)
 	permissionRepo := postgreRepository.NewPostgrePermissionRepository(db)
 	currentPermission, err := permissionRepo.GetByID(context.TODO(), 1)
@@ -128,7 +128,7 @@ func TestGetByIDFailure(t *testing.T) {
 		"updated_at",
 	}).
 		AddRow("", "", "", "", "")
-	query := "SELECT \\* FROM permissions WHERE id = \\?"
+	query := "SELECT \\* FROM permissions WHERE id = \\$1"
 	mock.ExpectQuery(query).WillReturnRows(rows)
 	permissionRepo := postgreRepository.NewPostgrePermissionRepository(db)
 	_, err = permissionRepo.GetByID(context.TODO(), 0)
@@ -159,7 +159,7 @@ func TestStore(t *testing.T) {
 		created_at, 
 		updated_at
 		)
-		VALUES (?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4)
 		`
 
 	mock.ExpectBegin()
@@ -193,7 +193,7 @@ func TestStoreFailure(t *testing.T) {
 		created_at, 
 		updated_at
 		)
-		VALUES (?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4)
 		`
 
 	mock.ExpectBegin()
@@ -225,10 +225,10 @@ func TestUpdate(t *testing.T) {
 	query := `
 		UPDATE permissions
 		SET 
-		name = ?, 
-		description = ?,
-		updated_at = ?
-		WHERE id = ?
+		name = $1, 
+		description = $2,
+		updated_at = $3
+		WHERE id = $4
 	`
 
 	mock.ExpectBegin()
@@ -257,10 +257,10 @@ func TestUpdateFailure(t *testing.T) {
 	query := `
 		UPDATE permissions
 		SET 
-		name = ?, 
-		description = ?,
-		updated_at = ?
-		WHERE id = ?
+		name = $1, 
+		description = $2,
+		updated_at = $3
+		WHERE id = $4
 	`
 
 	mock.ExpectBegin()
@@ -292,10 +292,10 @@ func TestUpdateRowsAffected(t *testing.T) {
 	query := `
 		UPDATE permissions
 		SET 
-		name = ?, 
-		description = ?,
-		updated_at = ?
-		WHERE id = ?
+		name = $1, 
+		description = $2,
+		updated_at = $3
+		WHERE id = $4
 	`
 
 	mock.ExpectBegin()
@@ -321,7 +321,7 @@ func TestDelete(t *testing.T) {
 
 	defer db.Close()
 
-	query := "DELETE FROM permissions WHERE id = \\?"
+	query := "DELETE FROM permissions WHERE id = \\$1"
 	mock.ExpectBegin()
 	mock.ExpectExec(query).WithArgs(12).WillReturnResult(sqlxmock.NewResult(12, 1))
 	mock.ExpectCommit()
@@ -338,7 +338,7 @@ func TestDeleteFailure(t *testing.T) {
 
 	defer db.Close()
 
-	query := "DELETE FROM permissions WHERE id = \\?"
+	query := "DELETE FROM permissions WHERE id = \\$1"
 	mock.ExpectBegin()
 	mock.ExpectExec(query).WithArgs(0).WillReturnResult(sqlxmock.NewResult(12, 1))
 	mock.ExpectCommit()
@@ -355,7 +355,7 @@ func TestDeleteRowsAffected(t *testing.T) {
 
 	defer db.Close()
 
-	query := "DELETE FROM permissions WHERE id = \\?"
+	query := "DELETE FROM permissions WHERE id = \\$1"
 	mock.ExpectBegin()
 	mock.ExpectExec(query).WithArgs(12).WillReturnResult(sqlxmock.NewResult(12, 0))
 	mock.ExpectCommit()
