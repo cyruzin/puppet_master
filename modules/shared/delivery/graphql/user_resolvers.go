@@ -108,3 +108,19 @@ func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}
 	}
 	return nil, nil
 }
+
+// UserDeleteResolver deletes the given user.
+func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
+	id, err := strconv.ParseInt(params.Args["id"].(string), 10, 64)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+
+	err = r.userUseCase.Delete(params.Context, id)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+	return nil, nil
+}

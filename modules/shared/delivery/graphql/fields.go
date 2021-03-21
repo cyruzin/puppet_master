@@ -46,6 +46,15 @@ func (r *Resolver) mutationFields() graphql.Fields {
 			},
 			Resolve: r.UserUpdateResolver,
 		},
+		"deleteUser": &graphql.Field{
+			Type: userType,
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: r.UserDeleteResolver,
+		},
 	}
 
 	return fields
