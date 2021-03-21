@@ -29,42 +29,19 @@ func (r *Resolver) queryFields() graphql.Fields {
 func (r *Resolver) mutationFields() graphql.Fields {
 	fields := graphql.Fields{
 		"createUser": &graphql.Field{
-			Type:        userType,
-			Description: "Create a new user",
+			Type: userType,
 			Args: graphql.FieldConfigArgument{
-				"name": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"email": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"password": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"superadmin": &graphql.ArgumentConfig{
-					Type: graphql.Boolean,
+				"user": &graphql.ArgumentConfig{
+					Type: userInput,
 				},
 			},
 			Resolve: r.UserCreateResolver,
 		},
 		"updateUser": &graphql.Field{
-			Type:        userType,
-			Description: "Update a given user",
+			Type: userType,
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"name": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"email": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"password": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"superadmin": &graphql.ArgumentConfig{
-					Type: graphql.Boolean,
+				"user": &graphql.ArgumentConfig{
+					Type: userInput,
 				},
 			},
 			Resolve: r.UserUpdateResolver,

@@ -30,3 +30,32 @@ var userType = graphql.NewObject(graphql.ObjectConfig{
 		},
 	},
 })
+
+var userInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name:        "UserInput",
+	Description: "Input payload for creating a new",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"id": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"name": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"email": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"password": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"superadmin": &graphql.InputObjectFieldConfig{
+			Type:         graphql.Boolean,
+			DefaultValue: false,
+		},
+		"created_at": &graphql.InputObjectFieldConfig{
+			Type: graphql.DateTime,
+		},
+		"udpated_at": &graphql.InputObjectFieldConfig{
+			Type: graphql.DateTime,
+		},
+	},
+})
