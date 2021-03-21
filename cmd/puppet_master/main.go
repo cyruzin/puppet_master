@@ -32,13 +32,14 @@ func init() {
 
 	env := viper.GetBool(`debug`)
 
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+
 	if env {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 		log.Debug().Msg("running in DEVELOPMENT mode")
 	} else {
 		log.Debug().Msg("running in PRODUCTION mode")
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-		zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	}
 }
 
