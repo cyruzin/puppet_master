@@ -6,6 +6,7 @@ import (
 
 func (r *Resolver) queryFields() graphql.Fields {
 	fields := graphql.Fields{
+		// User
 		"fetchUsers": &graphql.Field{
 			Type:        graphql.NewList(userType),
 			Description: "Get a list of users",
@@ -21,6 +22,23 @@ func (r *Resolver) queryFields() graphql.Fields {
 			},
 			Resolve: r.UserQueryResolver,
 		},
+
+		// Role
+		"fetchRoles": &graphql.Field{
+			Type:        graphql.NewList(roleType),
+			Description: "Get a list of roles",
+			Resolve:     r.RolesListQueryResolver,
+		},
+		"getRole": &graphql.Field{
+			Type:        roleType,
+			Description: "Get a single role",
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: r.RoleQueryResolver,
+		},
 	}
 
 	return fields
@@ -28,6 +46,7 @@ func (r *Resolver) queryFields() graphql.Fields {
 
 func (r *Resolver) mutationFields() graphql.Fields {
 	fields := graphql.Fields{
+		// User
 		"createUser": &graphql.Field{
 			Type: userType,
 			Args: graphql.FieldConfigArgument{
@@ -54,6 +73,35 @@ func (r *Resolver) mutationFields() graphql.Fields {
 				},
 			},
 			Resolve: r.UserDeleteResolver,
+		},
+
+		// Role
+		"createRole": &graphql.Field{
+			Type: roleType,
+			Args: graphql.FieldConfigArgument{
+				"role": &graphql.ArgumentConfig{
+					Type: roleInput,
+				},
+			},
+			Resolve: r.RoleCreateResolver,
+		},
+		"updateRole": &graphql.Field{
+			Type: roleType,
+			Args: graphql.FieldConfigArgument{
+				"role": &graphql.ArgumentConfig{
+					Type: roleInput,
+				},
+			},
+			Resolve: r.RoleUpdateResolver,
+		},
+		"deleteRole": &graphql.Field{
+			Type: roleType,
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: r.RoleDeleteResolver,
 		},
 	}
 

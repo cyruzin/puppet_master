@@ -4,8 +4,8 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-var userType = graphql.NewObject(graphql.ObjectConfig{
-	Name: "User",
+var roleType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Role",
 	Fields: graphql.Fields{
 		"id": &graphql.Field{
 			Type: graphql.String,
@@ -13,14 +13,8 @@ var userType = graphql.NewObject(graphql.ObjectConfig{
 		"name": &graphql.Field{
 			Type: graphql.String,
 		},
-		"email": &graphql.Field{
+		"description": &graphql.Field{
 			Type: graphql.String,
-		},
-		"password": &graphql.Field{
-			Type: graphql.String,
-		},
-		"superadmin": &graphql.Field{
-			Type: graphql.Boolean,
 		},
 		"created_at": &graphql.Field{
 			Type: graphql.DateTime,
@@ -31,9 +25,9 @@ var userType = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
-var userInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name:        "UserInput",
-	Description: "Input payload for creating a new user",
+var roleInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name:        "RoleInput",
+	Description: "Role payload for creating a new role",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"id": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
@@ -41,15 +35,8 @@ var userInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		"name": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
-		"email": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
-		},
-		"password": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
-		},
-		"superadmin": &graphql.InputObjectFieldConfig{
-			Type:         graphql.Boolean,
-			DefaultValue: false,
+		"description": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
 		},
 		"created_at": &graphql.InputObjectFieldConfig{
 			Type: graphql.DateTime,
