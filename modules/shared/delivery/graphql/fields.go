@@ -6,21 +6,21 @@ import (
 
 func (r *Resolver) queryFields() graphql.Fields {
 	fields := graphql.Fields{
-		// User
-		"fetchUsers": &graphql.Field{
-			Type:        graphql.NewList(userType),
-			Description: "Get a list of users",
-			Resolve:     r.UsersListQueryResolver,
+		// Permission
+		"fetchPermissions": &graphql.Field{
+			Type:        graphql.NewList(permissionType),
+			Description: "Get a list of permissions",
+			Resolve:     r.PermissionsListQueryResolver,
 		},
-		"getUser": &graphql.Field{
-			Type:        userType,
-			Description: "Get a single user",
+		"getPermission": &graphql.Field{
+			Type:        permissionType,
+			Description: "Get a single permission",
 			Args: graphql.FieldConfigArgument{
 				"id": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
 			},
-			Resolve: r.UserQueryResolver,
+			Resolve: r.PermissionQueryResolver,
 		},
 
 		// Role
@@ -39,6 +39,23 @@ func (r *Resolver) queryFields() graphql.Fields {
 			},
 			Resolve: r.RoleQueryResolver,
 		},
+
+		// User
+		"fetchUsers": &graphql.Field{
+			Type:        graphql.NewList(userType),
+			Description: "Get a list of users",
+			Resolve:     r.UsersListQueryResolver,
+		},
+		"getUser": &graphql.Field{
+			Type:        userType,
+			Description: "Get a single user",
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: r.UserQueryResolver,
+		},
 	}
 
 	return fields
@@ -46,33 +63,33 @@ func (r *Resolver) queryFields() graphql.Fields {
 
 func (r *Resolver) mutationFields() graphql.Fields {
 	fields := graphql.Fields{
-		// User
-		"createUser": &graphql.Field{
-			Type: userType,
+		// Permission
+		"createPermission": &graphql.Field{
+			Type: permissionType,
 			Args: graphql.FieldConfigArgument{
-				"user": &graphql.ArgumentConfig{
-					Type: userInput,
+				"permission": &graphql.ArgumentConfig{
+					Type: permissionInput,
 				},
 			},
-			Resolve: r.UserCreateResolver,
+			Resolve: r.PermissionCreateResolver,
 		},
-		"updateUser": &graphql.Field{
-			Type: userType,
+		"updatePermission": &graphql.Field{
+			Type: permissionType,
 			Args: graphql.FieldConfigArgument{
-				"user": &graphql.ArgumentConfig{
-					Type: userInput,
+				"permission": &graphql.ArgumentConfig{
+					Type: permissionInput,
 				},
 			},
-			Resolve: r.UserUpdateResolver,
+			Resolve: r.PermissionUpdateResolver,
 		},
-		"deleteUser": &graphql.Field{
-			Type: userType,
+		"deletePermission": &graphql.Field{
+			Type: permissionType,
 			Args: graphql.FieldConfigArgument{
 				"id": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
 			},
-			Resolve: r.UserDeleteResolver,
+			Resolve: r.PermissionDeleteResolver,
 		},
 
 		// Role
@@ -102,6 +119,35 @@ func (r *Resolver) mutationFields() graphql.Fields {
 				},
 			},
 			Resolve: r.RoleDeleteResolver,
+		},
+
+		// User
+		"createUser": &graphql.Field{
+			Type: userType,
+			Args: graphql.FieldConfigArgument{
+				"user": &graphql.ArgumentConfig{
+					Type: userInput,
+				},
+			},
+			Resolve: r.UserCreateResolver,
+		},
+		"updateUser": &graphql.Field{
+			Type: userType,
+			Args: graphql.FieldConfigArgument{
+				"user": &graphql.ArgumentConfig{
+					Type: userInput,
+				},
+			},
+			Resolve: r.UserUpdateResolver,
+		},
+		"deleteUser": &graphql.Field{
+			Type: userType,
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: r.UserDeleteResolver,
 		},
 	}
 
