@@ -39,7 +39,7 @@ func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interf
 
 // PermissionCreateResolver creates a new permission.
 func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	permission, err := createPermissionValidation(params)
+	permission, err := storePermissionValidation(params)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (r *Resolver) PermissionDeleteResolver(params graphql.ResolveParams) (inter
 	return nil, nil
 }
 
-func createPermissionValidation(params graphql.ResolveParams) (*domain.Permission, error) {
+func storePermissionValidation(params graphql.ResolveParams) (*domain.Permission, error) {
 	permissionParams := params.Args["permission"].(map[string]interface{})
 
 	permission := &domain.Permission{

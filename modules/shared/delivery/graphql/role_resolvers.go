@@ -39,7 +39,7 @@ func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{},
 
 // RoleCreateResolver creates a new role.
 func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	role, err := createRoleValidation(params)
+	role, err := storeRoleValidation(params)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}
 	return nil, nil
 }
 
-func createRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
+func storeRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
 	roleParams := params.Args["role"].(map[string]interface{})
 
 	role := &domain.Role{

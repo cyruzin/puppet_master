@@ -40,7 +40,7 @@ func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{},
 
 // UserCreateResolver creates a new user.
 func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	user, err := createUserValidation(params)
+	user, err := storeUserValidation(params)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}
 	return nil, nil
 }
 
-func createUserValidation(params graphql.ResolveParams) (*domain.User, error) {
+func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 	userParams := params.Args["user"].(map[string]interface{})
 
 	password := userParams["password"].(string)
