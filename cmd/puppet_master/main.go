@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 
 	permissionRepo "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
 	permissionUseCase "github.com/cyruzin/puppet_master/modules/permission/usecase"
 	roleRepo "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
 	roleUseCase "github.com/cyruzin/puppet_master/modules/role/usecase"
 	gql "github.com/cyruzin/puppet_master/modules/shared/delivery/graphql"
+	"github.com/cyruzin/puppet_master/modules/shared/delivery/graphql/middleware"
 	userRepo "github.com/cyruzin/puppet_master/modules/user/repository/postgres"
 	userUseCase "github.com/cyruzin/puppet_master/modules/user/usecase"
 
@@ -77,18 +79,47 @@ func main() {
 		Mutation: root.Mutation,
 	})
 
-	h := handler.New(&handler.Config{
+	graphqlHandler := handler.New(&handler.Config{
 		Schema:   &schema,
 		Pretty:   true,
 		GraphiQL: true,
 	})
 
-	log.Info().Msg("the server is running on port: 8000")
+	http.Handle(
+		"/graphql",
+		middleware.LoggerMiddleware(graphqlHandler),
+	)
 
-	http.Handle("/graphql", h)
-	if err := http.ListenAndServe(":8000", nil); err != nil {
-		log.Fatal().Stack().Err(err).Msg("")
+	srv := &http.Server{
+		Addr:              viper.GetString(`server.port`),
+		ReadTimeout:       viper.GetDuration(`server.read_timeout`),
+		ReadHeaderTimeout: viper.GetDuration(`server.read_header_timeout`),
+		WriteTimeout:      viper.GetDuration(`server.write_timeout`),
+		IdleTimeout:       viper.GetDuration(`server.idle_timeout`),
 	}
+
+	idleConnsClosed := make(chan struct{})
+
+	go func() {
+		gracefulStop := make(chan os.Signal, 1)
+		signal.Notify(gracefulStop, os.Interrupt)
+		<-gracefulStop
+
+		log.Info().Msg("shutting down the server...")
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Error().Err(err).Msg("server failed to shutdown")
+		}
+		close(idleConnsClosed)
+	}()
+
+	log.Info().Msgf("the server is running on port %s: ", viper.GetString(`server.port`))
+	log.Info().Msg("you're good to go! :)")
+
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatal().Stack().Err(err).Msg("server failed to start")
+	}
+
+	<-idleConnsClosed
 }
 
 func databaseConnection(
