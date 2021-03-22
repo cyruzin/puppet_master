@@ -38,7 +38,7 @@ func init() {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 		log.Debug().Msg("running in DEVELOPMENT mode")
 	} else {
-		log.Debug().Msg("running in PRODUCTION mode")
+		log.Info().Msg("running in PRODUCTION mode")
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	}
 }

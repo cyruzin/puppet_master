@@ -8,8 +8,8 @@ import (
 // Permission represent the permission's model.
 type Permission struct {
 	ID          int64     `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
+	Name        string    `json:"name" validate:"required"`
+	Description string    `json:"description" validate:"required"`
 	UpdatedAt   time.Time `json:"updated_at" db:"created_at"`
 	CreatedAt   time.Time `json:"created_at" db:"updated_at"`
 }

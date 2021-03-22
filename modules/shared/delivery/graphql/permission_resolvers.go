@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cyruzin/puppet_master/domain"
+	"github.com/cyruzin/puppet_master/pkg/validation"
 	"github.com/graphql-go/graphql"
 	"github.com/rs/zerolog/log"
 )
@@ -38,17 +39,12 @@ func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interf
 
 // PermissionCreateResolver creates a new permission.
 func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	permissionParams := params.Args["permission"].(map[string]interface{})
-
-	permission := &domain.Permission{
-		Name:        permissionParams["name"].(string),
-		Description: permissionParams["description"].(string),
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+	permission, err := createPermissionValidation(params)
+	if err != nil {
+		return nil, err
 	}
 
-	err := r.permissionUseCase.Store(params.Context, permission)
-	if err != nil {
+	if err := r.permissionUseCase.Store(params.Context, permission); err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
@@ -57,23 +53,12 @@ func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (inter
 
 // PermissionUpdateResolver updates the given permission.
 func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	permissionParams := params.Args["permission"].(map[string]interface{})
-
-	id, err := strconv.ParseInt(permissionParams["id"].(string), 10, 64)
+	permission, err := updatePermissionValidation(params)
 	if err != nil {
-		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
 
-	permission := &domain.Permission{
-		ID:          id,
-		Name:        permissionParams["name"].(string),
-		Description: permissionParams["description"].(string),
-		UpdatedAt:   time.Now(),
-	}
-
-	err = r.permissionUseCase.Update(params.Context, permission)
-	if err != nil {
+	if err := r.permissionUseCase.Update(params.Context, permission); err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
@@ -94,4 +79,46 @@ func (r *Resolver) PermissionDeleteResolver(params graphql.ResolveParams) (inter
 		return nil, err
 	}
 	return nil, nil
+}
+
+func createPermissionValidation(params graphql.ResolveParams) (*domain.Permission, error) {
+	permissionParams := params.Args["permission"].(map[string]interface{})
+
+	permission := &domain.Permission{
+		Name:        permissionParams["name"].(string),
+		Description: permissionParams["description"].(string),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := validation.IsAValidSchema(params.Context, permission); err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+
+	return permission, nil
+}
+
+func updatePermissionValidation(params graphql.ResolveParams) (*domain.Permission, error) {
+	permissionParams := params.Args["permission"].(map[string]interface{})
+
+	id, err := strconv.ParseInt(permissionParams["id"].(string), 10, 64)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+
+	permission := &domain.Permission{
+		ID:          id,
+		Name:        permissionParams["name"].(string),
+		Description: permissionParams["description"].(string),
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := validation.IsAValidSchema(params.Context, permission); err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+
+	return permission, nil
 }

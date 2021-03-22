@@ -6,6 +6,7 @@ import (
 
 	"github.com/cyruzin/puppet_master/domain"
 	"github.com/cyruzin/puppet_master/pkg/crypto"
+	"github.com/cyruzin/puppet_master/pkg/validation"
 	"github.com/graphql-go/graphql"
 	"github.com/rs/zerolog/log"
 )
@@ -39,31 +40,12 @@ func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{},
 
 // UserCreateResolver creates a new user.
 func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	userParams := params.Args["user"].(map[string]interface{})
-
-	superadmin := false
-
-	if userParams["superadmin"].(bool) {
-		superadmin = true
-	}
-
-	password, err := crypto.HashPassword(userParams["password"].(string), 6)
+	user, err := createUserValidation(params)
 	if err != nil {
-		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
 
-	user := &domain.User{
-		Name:       userParams["name"].(string),
-		Email:      userParams["email"].(string),
-		Password:   password,
-		SuperAdmin: superadmin,
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-	}
-
-	err = r.userUseCase.Store(params.Context, user)
-	if err != nil {
+	if err := r.userUseCase.Store(params.Context, user); err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
@@ -72,37 +54,12 @@ func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}
 
 // UserUpdateResolver updates the given user.
 func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	userParams := params.Args["user"].(map[string]interface{})
-
-	id, err := strconv.ParseInt(userParams["id"].(string), 10, 64)
+	user, err := updateUserValidation(params)
 	if err != nil {
-		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
 
-	superadmin := false
-
-	if userParams["superadmin"].(bool) {
-		superadmin = true
-	}
-
-	password, err := crypto.HashPassword(userParams["password"].(string), 6)
-	if err != nil {
-		log.Error().Stack().Msg(err.Error())
-		return nil, err
-	}
-
-	user := &domain.User{
-		ID:         id,
-		Name:       userParams["name"].(string),
-		Email:      userParams["email"].(string),
-		Password:   password,
-		SuperAdmin: superadmin,
-		UpdatedAt:  time.Now(),
-	}
-
-	err = r.userUseCase.Update(params.Context, user)
-	if err != nil {
+	if err := r.userUseCase.Update(params.Context, user); err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
@@ -123,4 +80,59 @@ func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}
 		return nil, err
 	}
 	return nil, nil
+}
+
+func createUserValidation(params graphql.ResolveParams) (*domain.User, error) {
+	userParams := params.Args["user"].(map[string]interface{})
+
+	password := userParams["password"].(string)
+
+	user := &domain.User{
+		Name:       userParams["name"].(string),
+		Email:      userParams["email"].(string),
+		Password:   password,
+		SuperAdmin: userParams["superadmin"].(bool),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	if err := validation.IsAValidSchema(params.Context, user); err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+
+	hashedPassword, err := crypto.HashPassword(password, 6)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+
+	user.Password = hashedPassword
+
+	return user, nil
+}
+
+func updateUserValidation(params graphql.ResolveParams) (*domain.User, error) {
+	userParams := params.Args["user"].(map[string]interface{})
+
+	id, err := strconv.ParseInt(userParams["id"].(string), 10, 64)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+
+	user := &domain.User{
+		ID:         id,
+		Name:       userParams["name"].(string),
+		Email:      userParams["email"].(string),
+		SuperAdmin: userParams["superadmin"].(bool),
+		UpdatedAt:  time.Now(),
+	}
+
+	if err := validation.IsAValidSchema(params.Context, user); err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+
+	return user, nil
 }
