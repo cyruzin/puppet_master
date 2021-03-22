@@ -48,18 +48,19 @@ func init() {
 func main() {
 	ctx := context.Background()
 
-	dbDriver := viper.GetString(`database.driver`)
-	dbHost := viper.GetString(`database.host`)
-	dbUser := viper.GetString(`database.user`)
-	dbPass := viper.GetString(`database.pass`)
-	dbName := viper.GetString(`database.name`)
-
 	dataSourceName := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbUser, dbPass, dbName,
+		viper.GetString(`database.host`),
+		viper.GetString(`database.user`),
+		viper.GetString(`database.pass`),
+		viper.GetString(`database.name`),
 	)
 
-	dbConnection := databaseConnection(ctx, dbDriver, dataSourceName)
+	dbConnection := databaseConnection(
+		ctx,
+		viper.GetString(`database.driver`),
+		dataSourceName,
+	)
 
 	defer dbConnection.Close()
 
