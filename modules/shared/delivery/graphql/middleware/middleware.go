@@ -31,12 +31,9 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 // func AuthMiddleware(next http.Handler) http.Handler {
 // 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-// 0 - In Auth use case, returns all permissions and user permissions to check in the middleware.
 // 1 - Check JWT authenticity (Isolated function)
 // 2 - Extract user data (Isolated function)
-// 3 - Verify permissions (Isolated function)
-//  3.1 - Check if the user permissions are valid and return true or false (Isolated function)
-// 4 - Return error or forward the request (Here)
+// 3 - Send permissions through Context
 
 // 	})
 // }
