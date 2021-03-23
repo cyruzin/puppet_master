@@ -6,10 +6,11 @@ import (
 
 // Auth represent the auth's model.
 type Auth struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
+	ID       int64  `json:"id,omitempty"`
+	Name     string `json:"name,omitempty"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password,omitempty" validate:"required,min=8"`
+	Token    string `json:"token,omitempty"`
 }
 
 // AuthUsecase represent the auth's usecases.
@@ -28,7 +29,7 @@ type AuthUsecase interface {
 
 // AuthRepository represent the auth's repository contract.
 type AuthRepository interface {
-	Authenticate(ctx context.Context, email, password string) (string, error)
+	Authenticate(ctx context.Context, email string) (string, error)
 	// ChangePassword(
 	// 	ctx context.Context,
 	// 	userID int64,

@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/signal"
 
+	authRepo "github.com/cyruzin/puppet_master/modules/auth/repository/postgres"
+	authUseCase "github.com/cyruzin/puppet_master/modules/auth/usecase"
 	permissionRepo "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
 	permissionUseCase "github.com/cyruzin/puppet_master/modules/permission/usecase"
 	roleRepo "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
@@ -64,6 +66,9 @@ func main() {
 
 	defer dbConnection.Close()
 
+	aRepo := authRepo.NewPostgreAuthRepository(dbConnection)
+	aCase := authUseCase.NewAuthUsecase(aRepo)
+
 	pRepo := permissionRepo.NewPostgrePermissionRepository(dbConnection)
 	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
 
@@ -73,7 +78,7 @@ func main() {
 	uRepo := userRepo.NewPostgreUserRepository(dbConnection)
 	uCase := userUseCase.NewUserUsecase(uRepo)
 
-	root := gql.NewRoot(pCase, rCase, uCase)
+	root := gql.NewRoot(aCase, pCase, rCase, uCase)
 
 	var schema, _ = graphql.NewSchema(graphql.SchemaConfig{
 		Query:    root.Query,

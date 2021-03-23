@@ -6,6 +6,18 @@ import (
 
 func (r *Resolver) queryFields() graphql.Fields {
 	fields := graphql.Fields{
+		// Auth
+		"authenticate": &graphql.Field{
+			Type:        authType,
+			Description: "Authenticate the given user",
+			Args: graphql.FieldConfigArgument{
+				"credentials": &graphql.ArgumentConfig{
+					Type: authInput,
+				},
+			},
+			Resolve: r.AuthQueryResolver,
+		},
+
 		// Permission
 		"fetchPermissions": &graphql.Field{
 			Type:        graphql.NewList(permissionType),

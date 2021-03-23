@@ -13,20 +13,23 @@ type Root struct {
 
 // Resolver struct for all use cases.
 type Resolver struct {
+	authUseCase       domain.AuthUsecase
 	permissionUseCase domain.PermissionUsecase
 	roleUseCase       domain.RoleUsecase
 	userUseCase       domain.UserUsecase
 }
 
 func NewRoot(
-	p domain.PermissionUsecase,
-	r domain.RoleUsecase,
-	u domain.UserUsecase,
+	auth domain.AuthUsecase,
+	permission domain.PermissionUsecase,
+	role domain.RoleUsecase,
+	user domain.UserUsecase,
 ) *Root {
 	resolver := Resolver{
-		permissionUseCase: p,
-		roleUseCase:       r,
-		userUseCase:       u,
+		authUseCase:       auth,
+		permissionUseCase: permission,
+		roleUseCase:       role,
+		userUseCase:       user,
 	}
 	root := Root{
 		Query: graphql.NewObject(graphql.ObjectConfig{

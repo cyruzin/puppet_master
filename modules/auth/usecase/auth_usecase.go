@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"errors"
 	"time"
 
 	"github.com/cyruzin/puppet_master/domain"
@@ -26,21 +27,19 @@ func NewAuthUsecase(auth domain.AuthRepository) domain.AuthUsecase {
 }
 
 func (a *authUseCase) Authenticate(ctx context.Context, email, password string) (string, error) {
-	hashedPassword, err := a.authRepo.Authenticate(ctx, email, password)
+	hashedPassword, err := a.authRepo.Authenticate(ctx, email)
 	if err != nil {
-		log.Error().Stack().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return "", err
 	}
 
-	match := crypto.CheckPasswordHash(password, hashedPassword)
-	if !match {
-		log.Error().Stack().Err(err).Msg("")
-		return "", err
+	if match := crypto.CheckPasswordHash(password, hashedPassword); !match {
+		return "", errors.New("authentication failed")
 	}
 
 	token, err := a.GenerateToken()
 	if err != nil {
-		log.Error().Stack().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return "", err
 	}
 
@@ -62,7 +61,7 @@ func (a *authUseCase) GenerateToken() (string, error) {
 
 	payload, err := jwt.Sign(t, jwa.RS256, privateKey)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return "", err
 	}
 

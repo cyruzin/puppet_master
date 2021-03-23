@@ -19,12 +19,12 @@ func NewPostgreAuthRepository(Conn *sqlx.DB) domain.AuthRepository {
 	return &postgreRepository{Conn}
 }
 
-func (p *postgreRepository) Authenticate(ctx context.Context, email, password string) (string, error) {
-	var hashedPassword string
+func (p *postgreRepository) Authenticate(ctx context.Context, email string) (string, error) {
+	var password string
 
 	query := "SELECT password from users WHERE email = $1"
 
-	err := p.Conn.GetContext(ctx, &hashedPassword, query, email)
+	err := p.Conn.GetContext(ctx, &password, query, email)
 	if err != nil && err != sql.ErrNoRows {
 		return "", err
 	}
