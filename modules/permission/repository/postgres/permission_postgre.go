@@ -26,7 +26,7 @@ func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.Permission, er
 
 	err := p.Conn.SelectContext(ctx, &result, query)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrFetchError
 	}
 
@@ -40,7 +40,7 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Perm
 
 	err := p.Conn.GetContext(ctx, &permission, query, id)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrGetByIDError
 	}
 
@@ -50,9 +50,17 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Perm
 func (p *postgreRepository) Store(ctx context.Context, permission *domain.Permission) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrStoreError
 	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
 
 	query := `
 	  INSERT INTO permissions ( 
@@ -73,21 +81,27 @@ func (p *postgreRepository) Store(ctx context.Context, permission *domain.Permis
 		permission.UpdatedAt,
 	)
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrStoreError
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (p *postgreRepository) Update(ctx context.Context, permission *domain.Permission) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrUpdateError
 	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
 
 	query := `
 		UPDATE permissions
@@ -107,52 +121,53 @@ func (p *postgreRepository) Update(ctx context.Context, permission *domain.Permi
 		permission.ID,
 	)
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrUpdateError
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrUpdateError
 	}
 
 	if rowsAffected == 0 {
-		tx.Rollback()
 		return domain.ErrNotFound
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrDeleteError
 	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
 
 	query := "DELETE FROM permissions WHERE id = $1"
 
 	result, err := p.Conn.ExecContext(ctx, query, id)
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrDeleteError
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrDeleteError
 	}
 
 	if rowsAffected == 0 {
-		tx.Rollback()
 		return domain.ErrNotFound
 	}
 

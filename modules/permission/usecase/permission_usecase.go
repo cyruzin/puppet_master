@@ -22,7 +22,7 @@ func NewPermissionUsecase(permission domain.PermissionRepository) domain.Permiss
 func (p *permissionUseCase) Fetch(ctx context.Context) ([]*domain.Permission, error) {
 	permissions, err := p.permissionRepo.Fetch(ctx)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
 
@@ -32,7 +32,7 @@ func (p *permissionUseCase) Fetch(ctx context.Context) ([]*domain.Permission, er
 func (p *permissionUseCase) GetByID(ctx context.Context, id int64) (*domain.Permission, error) {
 	permission, err := p.permissionRepo.GetByID(ctx, id)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
 
@@ -42,7 +42,7 @@ func (p *permissionUseCase) GetByID(ctx context.Context, id int64) (*domain.Perm
 func (p *permissionUseCase) Store(ctx context.Context, permission *domain.Permission) error {
 	err := p.permissionRepo.Store(ctx, permission)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 
@@ -52,7 +52,7 @@ func (p *permissionUseCase) Store(ctx context.Context, permission *domain.Permis
 func (p *permissionUseCase) Update(ctx context.Context, permission *domain.Permission) error {
 	err := p.permissionRepo.Update(ctx, permission)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 
@@ -62,7 +62,7 @@ func (p *permissionUseCase) Update(ctx context.Context, permission *domain.Permi
 func (p *permissionUseCase) Delete(ctx context.Context, id int64) error {
 	err := p.permissionRepo.Delete(ctx, id)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 

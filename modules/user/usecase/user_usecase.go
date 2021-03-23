@@ -22,7 +22,7 @@ func NewUserUsecase(user domain.UserRepository) domain.UserUsecase {
 func (u *userUseCase) Fetch(ctx context.Context) ([]*domain.User, error) {
 	users, err := u.userRepo.Fetch(ctx)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
 
@@ -32,7 +32,7 @@ func (u *userUseCase) Fetch(ctx context.Context) ([]*domain.User, error) {
 func (u *userUseCase) GetByID(ctx context.Context, id int64) (*domain.User, error) {
 	user, err := u.userRepo.GetByID(ctx, id)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
 
@@ -42,7 +42,7 @@ func (u *userUseCase) GetByID(ctx context.Context, id int64) (*domain.User, erro
 func (u *userUseCase) Store(ctx context.Context, user *domain.User) error {
 	err := u.userRepo.Store(ctx, user)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 
@@ -52,7 +52,7 @@ func (u *userUseCase) Store(ctx context.Context, user *domain.User) error {
 func (u *userUseCase) Update(ctx context.Context, user *domain.User) error {
 	err := u.userRepo.Update(ctx, user)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 
@@ -62,7 +62,7 @@ func (u *userUseCase) Update(ctx context.Context, user *domain.User) error {
 func (u *userUseCase) Delete(ctx context.Context, id int64) error {
 	err := u.userRepo.Delete(ctx, id)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 

@@ -25,7 +25,7 @@ func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.Role, error) {
 
 	err := p.Conn.SelectContext(ctx, &result, query)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrFetchError
 	}
 
@@ -39,7 +39,7 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Role
 
 	err := p.Conn.GetContext(ctx, &role, query, id)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrGetByIDError
 	}
 
@@ -47,11 +47,19 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Role
 }
 
 func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) error {
-	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	tx, err := p.Conn.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrStoreError
 	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
 
 	query := `
 	  INSERT INTO roles ( 
@@ -63,7 +71,7 @@ func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) error 
 		VALUES ($1, $2, $3, $4)
 		`
 
-	_, err = p.Conn.ExecContext(
+	_, err = tx.ExecContext(
 		ctx,
 		query,
 		role.Name,
@@ -72,21 +80,27 @@ func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) error 
 		role.UpdatedAt,
 	)
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrStoreError
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (p *postgreRepository) Update(ctx context.Context, role *domain.Role) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrUpdateError
 	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
 
 	query := `
 		UPDATE roles
@@ -106,55 +120,55 @@ func (p *postgreRepository) Update(ctx context.Context, role *domain.Role) error
 		role.ID,
 	)
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrUpdateError
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrUpdateError
 	}
 
 	if rowsAffected == 0 {
-		tx.Rollback()
 		return domain.ErrNotFound
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrDeleteError
 	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
 
 	query := "DELETE FROM roles WHERE id = $1"
 
 	result, err := p.Conn.ExecContext(ctx, query, id)
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrDeleteError
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Error().Stack().Err(err)
-		tx.Rollback()
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return domain.ErrDeleteError
 	}
 
 	if rowsAffected == 0 {
-		tx.Rollback()
 		return domain.ErrNotFound
 	}
 
-	tx.Commit()
 	return nil
 }

@@ -22,7 +22,7 @@ func NewRoleUsecase(role domain.RoleRepository) domain.RoleUsecase {
 func (r *roleUseCase) Fetch(ctx context.Context) ([]*domain.Role, error) {
 	roles, err := r.roleRepo.Fetch(ctx)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
 
@@ -32,7 +32,7 @@ func (r *roleUseCase) Fetch(ctx context.Context) ([]*domain.Role, error) {
 func (r *roleUseCase) GetByID(ctx context.Context, id int64) (*domain.Role, error) {
 	role, err := r.roleRepo.GetByID(ctx, id)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
 
@@ -42,7 +42,7 @@ func (r *roleUseCase) GetByID(ctx context.Context, id int64) (*domain.Role, erro
 func (r *roleUseCase) Store(ctx context.Context, role *domain.Role) error {
 	err := r.roleRepo.Store(ctx, role)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 
@@ -52,7 +52,7 @@ func (r *roleUseCase) Store(ctx context.Context, role *domain.Role) error {
 func (r *roleUseCase) Update(ctx context.Context, role *domain.Role) error {
 	err := r.roleRepo.Update(ctx, role)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 
@@ -62,7 +62,7 @@ func (r *roleUseCase) Update(ctx context.Context, role *domain.Role) error {
 func (r *roleUseCase) Delete(ctx context.Context, id int64) error {
 	err := r.roleRepo.Delete(ctx, id)
 	if err != nil {
-		log.Error().Stack().Err(err)
+		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
 
