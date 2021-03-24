@@ -22,19 +22,19 @@ func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interfa
 
 // RoleQueryResolver for a single role.
 func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	idQuery, isOK := params.Args["ID"].(string)
-
-	parsedID, _ := strconv.ParseInt(idQuery, 10, 64)
-
-	if isOK {
-		role, err := r.roleUseCase.GetByID(params.Context, parsedID)
-		if err != nil {
-			log.Error().Stack().Msg(err.Error())
-			return nil, err
-		}
-		return role, nil
+	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
 	}
-	return &domain.Role{}, nil
+
+	role, err := r.roleUseCase.GetByID(params.Context, id)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+	return role, nil
+
 }
 
 // RoleCreateResolver creates a new role.

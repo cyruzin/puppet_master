@@ -17,6 +17,9 @@ import (
 	"github.com/cyruzin/puppet_master/modules/shared/delivery/graphql/middleware"
 	userRepo "github.com/cyruzin/puppet_master/modules/user/repository/postgres"
 	userUseCase "github.com/cyruzin/puppet_master/modules/user/usecase"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
+	"github.com/go-chi/render"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
@@ -91,10 +94,35 @@ func main() {
 		GraphiQL: true,
 	})
 
-	http.Handle(
-		"/graphql",
-		middleware.LoggerMiddleware(graphqlHandler),
+	chiHandler := chi.NewRouter()
+
+	cors := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+			"OPTIONS",
+		},
+		AllowedHeaders: []string{
+			"Accept",
+			"Authorization",
+			"Content-Type",
+			"X-CSRF-Token",
+		},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	})
+
+	chiHandler.Use(
+		cors.Handler,
+		render.SetContentType(render.ContentTypeJSON),
+		middleware.LoggerMiddleware,
 	)
+
+	chiHandler.Handle("/graphql", graphqlHandler)
 
 	srv := &http.Server{
 		Addr:              viper.GetString(`server.port`),
@@ -102,6 +130,7 @@ func main() {
 		ReadHeaderTimeout: viper.GetDuration(`server.read_header_timeout`),
 		WriteTimeout:      viper.GetDuration(`server.write_timeout`),
 		IdleTimeout:       viper.GetDuration(`server.idle_timeout`),
+		Handler:           chiHandler,
 	}
 
 	idleConnsClosed := make(chan struct{})

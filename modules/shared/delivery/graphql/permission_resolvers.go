@@ -22,19 +22,18 @@ func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (i
 
 // PermissionQueryResolver for a single permission.
 func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	idQuery, isOK := params.Args["ID"].(string)
-
-	parsedID, _ := strconv.ParseInt(idQuery, 10, 64)
-
-	if isOK {
-		permission, err := r.permissionUseCase.GetByID(params.Context, parsedID)
-		if err != nil {
-			log.Error().Stack().Msg(err.Error())
-			return nil, err
-		}
-		return permission, nil
+	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
 	}
-	return &domain.Permission{}, nil
+
+	permission, err := r.permissionUseCase.GetByID(params.Context, id)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+	return permission, nil
 }
 
 // PermissionCreateResolver creates a new permission.

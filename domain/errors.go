@@ -15,6 +15,6 @@ var (
 	ErrUpdateError = errors.New("failed to update")
 	// ErrDeleteError will throw if failed to delete
 	ErrDeleteError = errors.New("failed to delete")
-	// ErrNotFound will throw if the requested resource is not exists
+	// ErrNotFound will throw if the requested resource could not be found
 	ErrNotFound = errors.New("the resource you requested could not be found")
 )

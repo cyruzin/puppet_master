@@ -23,19 +23,19 @@ func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interfa
 
 // UserQueryResolver for a single user.
 func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	idQuery, isOK := params.Args["ID"].(string)
-
-	parsedID, _ := strconv.ParseInt(idQuery, 10, 64)
-
-	if isOK {
-		user, err := r.userUseCase.GetByID(params.Context, parsedID)
-		if err != nil {
-			log.Error().Stack().Msg(err.Error())
-			return nil, err
-		}
-		return user, nil
+	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
 	}
-	return &domain.User{}, nil
+
+	user, err := r.userUseCase.GetByID(params.Context, id)
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
+	return user, nil
+
 }
 
 // UserCreateResolver creates a new user.
