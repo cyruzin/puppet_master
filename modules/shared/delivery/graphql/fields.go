@@ -7,63 +7,63 @@ import (
 func (r *Resolver) queryFields() graphql.Fields {
 	fields := graphql.Fields{
 		// Auth
-		"authenticate": &graphql.Field{
+		"Authenticate": &graphql.Field{
 			Type:        authType,
 			Description: "Authenticate the given user",
 			Args: graphql.FieldConfigArgument{
-				"credentials": &graphql.ArgumentConfig{
-					Type: authInput,
+				"Credentials": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(authInput),
 				},
 			},
 			Resolve: r.AuthQueryResolver,
 		},
 
 		// Permission
-		"fetchPermissions": &graphql.Field{
+		"FetchPermissions": &graphql.Field{
 			Type:        graphql.NewList(permissionType),
 			Description: "Get a list of permissions",
 			Resolve:     r.PermissionsListQueryResolver,
 		},
-		"getPermission": &graphql.Field{
+		"GetPermission": &graphql.Field{
 			Type:        permissionType,
 			Description: "Get a single permission",
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
-					Type: graphql.String,
+				"ID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: r.PermissionQueryResolver,
 		},
 
 		// Role
-		"fetchRoles": &graphql.Field{
+		"FetchRoles": &graphql.Field{
 			Type:        graphql.NewList(roleType),
 			Description: "Get a list of roles",
 			Resolve:     r.RolesListQueryResolver,
 		},
-		"getRole": &graphql.Field{
+		"GetRole": &graphql.Field{
 			Type:        roleType,
 			Description: "Get a single role",
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
-					Type: graphql.String,
+				"ID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: r.RoleQueryResolver,
 		},
 
 		// User
-		"fetchUsers": &graphql.Field{
+		"FetchUsers": &graphql.Field{
 			Type:        graphql.NewList(userType),
 			Description: "Get a list of users",
 			Resolve:     r.UsersListQueryResolver,
 		},
-		"getUser": &graphql.Field{
+		"GetUser": &graphql.Field{
 			Type:        userType,
 			Description: "Get a single user",
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
-					Type: graphql.String,
+				"ID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: r.UserQueryResolver,
@@ -76,87 +76,87 @@ func (r *Resolver) queryFields() graphql.Fields {
 func (r *Resolver) mutationFields() graphql.Fields {
 	fields := graphql.Fields{
 		// Permission
-		"createPermission": &graphql.Field{
+		"CreatePermission": &graphql.Field{
 			Type: permissionType,
 			Args: graphql.FieldConfigArgument{
-				"permission": &graphql.ArgumentConfig{
-					Type: permissionInput,
+				"Permission": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(permissionInput),
 				},
 			},
 			Resolve: r.PermissionCreateResolver,
 		},
-		"updatePermission": &graphql.Field{
+		"UpdatePermission": &graphql.Field{
 			Type: permissionType,
 			Args: graphql.FieldConfigArgument{
-				"permission": &graphql.ArgumentConfig{
-					Type: permissionInput,
+				"Permission": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(permissionInput),
 				},
 			},
 			Resolve: r.PermissionUpdateResolver,
 		},
-		"deletePermission": &graphql.Field{
+		"DeletePermission": &graphql.Field{
 			Type: permissionType,
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
-					Type: graphql.String,
+				"ID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: r.PermissionDeleteResolver,
 		},
 
 		// Role
-		"createRole": &graphql.Field{
+		"CreateRole": &graphql.Field{
 			Type: roleType,
 			Args: graphql.FieldConfigArgument{
-				"role": &graphql.ArgumentConfig{
-					Type: roleInput,
+				"Role": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(roleInput),
 				},
 			},
 			Resolve: r.RoleCreateResolver,
 		},
-		"updateRole": &graphql.Field{
+		"UpdateRole": &graphql.Field{
 			Type: roleType,
 			Args: graphql.FieldConfigArgument{
-				"role": &graphql.ArgumentConfig{
-					Type: roleInput,
+				"Role": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(roleInput),
 				},
 			},
 			Resolve: r.RoleUpdateResolver,
 		},
-		"deleteRole": &graphql.Field{
+		"DeleteRole": &graphql.Field{
 			Type: roleType,
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
-					Type: graphql.String,
+				"ID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: r.RoleDeleteResolver,
 		},
 
 		// User
-		"createUser": &graphql.Field{
+		"CreateUser": &graphql.Field{
 			Type: userType,
 			Args: graphql.FieldConfigArgument{
-				"user": &graphql.ArgumentConfig{
-					Type: userInput,
+				"User": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(userInput),
 				},
 			},
 			Resolve: r.UserCreateResolver,
 		},
-		"updateUser": &graphql.Field{
+		"UpdateUser": &graphql.Field{
 			Type: userType,
 			Args: graphql.FieldConfigArgument{
-				"user": &graphql.ArgumentConfig{
-					Type: userInput,
+				"User": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(userInput),
 				},
 			},
 			Resolve: r.UserUpdateResolver,
 		},
-		"deleteUser": &graphql.Field{
+		"DeleteUser": &graphql.Field{
 			Type: userType,
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
-					Type: graphql.String,
+				"ID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: r.UserDeleteResolver,

@@ -13,17 +13,17 @@ import (
 
 // UsersListQueryResolver for a list of users.
 func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	user, err := r.userUseCase.Fetch(params.Context)
+	users, err := r.userUseCase.Fetch(params.Context)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
-	return user, nil
+	return users, nil
 }
 
 // UserQueryResolver for a single user.
 func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	idQuery, isOK := params.Args["id"].(string)
+	idQuery, isOK := params.Args["ID"].(string)
 
 	parsedID, _ := strconv.ParseInt(idQuery, 10, 64)
 
@@ -68,7 +68,7 @@ func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // UserDeleteResolver deletes the given user.
 func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	id, err := strconv.ParseInt(params.Args["id"].(string), 10, 64)
+	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
@@ -83,7 +83,7 @@ func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}
 }
 
 func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
-	userParams := params.Args["user"].(map[string]interface{})
+	userParams := params.Args["User"].(map[string]interface{})
 
 	password := userParams["password"].(string)
 
@@ -113,7 +113,7 @@ func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 }
 
 func updateUserValidation(params graphql.ResolveParams) (*domain.User, error) {
-	userParams := params.Args["user"].(map[string]interface{})
+	userParams := params.Args["User"].(map[string]interface{})
 
 	id, err := strconv.ParseInt(userParams["id"].(string), 10, 64)
 	if err != nil {

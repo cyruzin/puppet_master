@@ -22,7 +22,7 @@ func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (i
 
 // PermissionQueryResolver for a single permission.
 func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	idQuery, isOK := params.Args["id"].(string)
+	idQuery, isOK := params.Args["ID"].(string)
 
 	parsedID, _ := strconv.ParseInt(idQuery, 10, 64)
 
@@ -67,7 +67,7 @@ func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (inter
 
 // PermissionDeleteResolver deletes the given permission.
 func (r *Resolver) PermissionDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	id, err := strconv.ParseInt(params.Args["id"].(string), 10, 64)
+	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
@@ -82,7 +82,7 @@ func (r *Resolver) PermissionDeleteResolver(params graphql.ResolveParams) (inter
 }
 
 func storePermissionValidation(params graphql.ResolveParams) (*domain.Permission, error) {
-	permissionParams := params.Args["permission"].(map[string]interface{})
+	permissionParams := params.Args["Permission"].(map[string]interface{})
 
 	permission := &domain.Permission{
 		Name:        permissionParams["name"].(string),
@@ -100,7 +100,7 @@ func storePermissionValidation(params graphql.ResolveParams) (*domain.Permission
 }
 
 func updatePermissionValidation(params graphql.ResolveParams) (*domain.Permission, error) {
-	permissionParams := params.Args["permission"].(map[string]interface{})
+	permissionParams := params.Args["Permission"].(map[string]interface{})
 
 	id, err := strconv.ParseInt(permissionParams["id"].(string), 10, 64)
 	if err != nil {

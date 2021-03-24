@@ -152,6 +152,14 @@ func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 		return err
 	}
 
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
 	query := "DELETE FROM users WHERE id = $1"
 
 	result, err := tx.ExecContext(ctx, query, id)

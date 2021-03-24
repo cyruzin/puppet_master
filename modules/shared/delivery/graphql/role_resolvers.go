@@ -22,7 +22,7 @@ func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interfa
 
 // RoleQueryResolver for a single role.
 func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	idQuery, isOK := params.Args["id"].(string)
+	idQuery, isOK := params.Args["ID"].(string)
 
 	parsedID, _ := strconv.ParseInt(idQuery, 10, 64)
 
@@ -67,7 +67,7 @@ func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // RoleDeleteResolver deletes the given role.
 func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	id, err := strconv.ParseInt(params.Args["id"].(string), 10, 64)
+	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
@@ -82,7 +82,7 @@ func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}
 }
 
 func storeRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
-	roleParams := params.Args["role"].(map[string]interface{})
+	roleParams := params.Args["Role"].(map[string]interface{})
 
 	role := &domain.Role{
 		Name:        roleParams["name"].(string),
@@ -100,7 +100,7 @@ func storeRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
 }
 
 func updateRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
-	roleParams := params.Args["role"].(map[string]interface{})
+	roleParams := params.Args["Role"].(map[string]interface{})
 
 	id, err := strconv.ParseInt(roleParams["id"].(string), 10, 64)
 	if err != nil {

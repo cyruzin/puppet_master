@@ -26,7 +26,7 @@ func (r *Resolver) AuthQueryResolver(params graphql.ResolveParams) (interface{},
 }
 
 func authValidation(params graphql.ResolveParams) (*domain.Auth, error) {
-	authParams := params.Args["credentials"].(map[string]interface{})
+	authParams := params.Args["Credentials"].(map[string]interface{})
 
 	auth := &domain.Auth{
 		Email:    authParams["email"].(string),

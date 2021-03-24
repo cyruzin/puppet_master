@@ -26,7 +26,7 @@ func validationMap(err validator.FieldError) *APIMessage {
 	}
 
 	return &APIMessage{
-		Message: "The " + strings.ToLower(err.Field()) + " field " + errMap[err.Tag()],
+		Message: "the " + strings.ToLower(err.Field()) + " field " + errMap[err.Tag()],
 	}
 }
 

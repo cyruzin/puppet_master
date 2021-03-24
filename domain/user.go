@@ -10,7 +10,7 @@ type User struct {
 	ID         int64     `json:"id"`
 	Name       string    `json:"name" validate:"required"`
 	Email      string    `json:"email" validate:"required,email"`
-	Password   string    `json:"-" validate:"required,min=8"`
+	Password   string    `json:"-"`
 	SuperAdmin bool      `json:"superadmin"`
 	UpdatedAt  time.Time `json:"updated_at" db:"created_at"`
 	CreatedAt  time.Time `json:"created_at" db:"updated_at"`
