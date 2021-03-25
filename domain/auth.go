@@ -16,25 +16,25 @@ type Auth struct {
 // AuthUsecase represent the auth's usecases.
 type AuthUsecase interface {
 	Authenticate(ctx context.Context, email, password string) (string, error)
-	// ChangePassword(
-	// 	ctx context.Context,
-	// 	userID int64,
-	// 	oldPassword string,
-	// 	newPassword string,
-	// ) (bool, error)
-	// ResetPassword(ctx context.Context, email string) (bool, error)
+
 	GenerateToken() (string, error)
 	ParseToken(token string) (interface{}, error)
+
+	// ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (bool, error)
+	// ResetPassword(ctx context.Context, email string) (bool, error)
 }
 
 // AuthRepository represent the auth's repository contract.
 type AuthRepository interface {
 	Authenticate(ctx context.Context, email string) (string, error)
-	// ChangePassword(
-	// 	ctx context.Context,
-	// 	userID int64,
-	// 	oldPassword string,
-	// 	newPassword string,
-	// ) (bool, error)
+
+	// ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (bool, error)
 	// ResetPassword(ctx context.Context, email string) (bool, error)
+
+	// AssignRole(role string, userID int64) error
+	// RemoveRole(role string, userID int64) error
+
+	// GivePermissionTo(permission string, userID int64) error
+	// RemovePermissionTo(permission string, userID int64) error
+	// SyncPermission(permission string, userID int64) error
 }
