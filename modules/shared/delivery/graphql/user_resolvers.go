@@ -88,12 +88,11 @@ func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 	password := userParams["password"].(string)
 
 	user := &domain.User{
-		Name:       userParams["name"].(string),
-		Email:      userParams["email"].(string),
-		Password:   password,
-		SuperAdmin: userParams["superadmin"].(bool),
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
+		Name:      userParams["name"].(string),
+		Email:     userParams["email"].(string),
+		Password:  password,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	if err := validation.IsAValidSchema(params.Context, user); err != nil {
@@ -122,11 +121,10 @@ func updateUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 	}
 
 	user := &domain.User{
-		ID:         id,
-		Name:       userParams["name"].(string),
-		Email:      userParams["email"].(string),
-		SuperAdmin: userParams["superadmin"].(bool),
-		UpdatedAt:  time.Now(),
+		ID:        id,
+		Name:      userParams["name"].(string),
+		Email:     userParams["email"].(string),
+		UpdatedAt: time.Now(),
 	}
 
 	if err := validation.IsAValidSchema(params.Context, user); err != nil {

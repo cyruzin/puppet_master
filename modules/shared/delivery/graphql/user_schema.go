@@ -19,9 +19,6 @@ var userType = graphql.NewObject(graphql.ObjectConfig{
 		"password": &graphql.Field{
 			Type: graphql.String,
 		},
-		"superadmin": &graphql.Field{
-			Type: graphql.Boolean,
-		},
 		"created_at": &graphql.Field{
 			Type: graphql.DateTime,
 		},
@@ -46,10 +43,6 @@ var userInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"password": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
-		},
-		"superadmin": &graphql.InputObjectFieldConfig{
-			Type:         graphql.Boolean,
-			DefaultValue: false,
 		},
 		"created_at": &graphql.InputObjectFieldConfig{
 			Type: graphql.DateTime,

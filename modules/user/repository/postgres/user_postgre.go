@@ -66,11 +66,10 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 		name, 
 		email, 
 		password,
-		superadmin,
 		created_at, 
 		updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		VALUES ($1, $2, $3, $4, $5)
 		`
 
 	_, err = tx.ExecContext(
@@ -79,7 +78,6 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 		user.Name,
 		user.Email,
 		user.Password,
-		user.SuperAdmin,
 		user.CreatedAt,
 		user.UpdatedAt,
 	)
@@ -111,10 +109,9 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error
 		SET 
 		name = $1, 
 		email = $2, 
-		password = $3, 
-		superadmin = $4, 
-		updated_at = $5
-		WHERE id = $6
+		password = $3,  
+		updated_at = $4
+		WHERE id = $5
 	`
 
 	result, err := tx.ExecContext(
@@ -123,7 +120,6 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error
 		user.Name,
 		user.Email,
 		user.Password,
-		user.SuperAdmin,
 		user.UpdatedAt,
 		user.ID,
 	)

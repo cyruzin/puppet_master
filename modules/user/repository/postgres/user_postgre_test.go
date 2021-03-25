@@ -22,22 +22,20 @@ func TestFetch(t *testing.T) {
 
 	mockUsers := []domain.User{
 		{
-			ID:         1,
-			Name:       "Homer Simpson",
-			Email:      "homer@simpsons.org",
-			Password:   "123",
-			SuperAdmin: true, // of course :p
-			CreatedAt:  time.Now(),
-			UpdatedAt:  time.Now(),
+			ID:        1,
+			Name:      "Homer Simpson",
+			Email:     "homer@simpsons.org",
+			Password:  "123",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		},
 		{
-			ID:         2,
-			Name:       "Bart Simpson",
-			Email:      "bart@simpsons.org",
-			Password:   "456",
-			SuperAdmin: false,
-			CreatedAt:  time.Now(),
-			UpdatedAt:  time.Now(),
+			ID:        2,
+			Name:      "Bart Simpson",
+			Email:     "bart@simpsons.org",
+			Password:  "456",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		},
 	}
 
@@ -46,7 +44,6 @@ func TestFetch(t *testing.T) {
 		"name",
 		"email",
 		"password",
-		"superadmin",
 		"created_at",
 		"updated_at",
 	}).AddRow(
@@ -54,7 +51,6 @@ func TestFetch(t *testing.T) {
 		mockUsers[0].Name,
 		mockUsers[0].Email,
 		mockUsers[0].Password,
-		mockUsers[0].SuperAdmin,
 		mockUsers[0].CreatedAt,
 		mockUsers[0].UpdatedAt,
 	).AddRow(
@@ -62,7 +58,6 @@ func TestFetch(t *testing.T) {
 		mockUsers[1].Name,
 		mockUsers[1].Email,
 		mockUsers[1].Password,
-		mockUsers[1].SuperAdmin,
 		mockUsers[1].CreatedAt,
 		mockUsers[1].UpdatedAt,
 	)
@@ -87,10 +82,9 @@ func TestFetchFailure(t *testing.T) {
 		"name",
 		"email",
 		"password",
-		"superadmin",
 		"created_at",
 		"updated_at",
-	}).AddRow("", "", "", "", "", "", "")
+	}).AddRow("", "", "", "", "", "")
 	query := "SELECT \\* FROM users"
 	mock.ExpectQuery(query).WillReturnRows(rows)
 	userRepo := postgreRepository.NewPostgreUserRepository(db)
@@ -111,11 +105,10 @@ func TestGetByID(t *testing.T) {
 		"name",
 		"email",
 		"password",
-		"superadmin",
 		"created_at",
 		"updated_at",
 	}).
-		AddRow(1, "Homer Simpson", "homer@simpsons.org", "123", true, time.Now(), time.Now())
+		AddRow(1, "Homer Simpson", "homer@simpsons.org", "123", time.Now(), time.Now())
 
 	query := "SELECT \\* FROM users WHERE id = \\$1"
 	mock.ExpectQuery(query).WillReturnRows(rows)
@@ -139,11 +132,10 @@ func TestGetByIDFailure(t *testing.T) {
 		"name",
 		"email",
 		"password",
-		"superadmin",
 		"created_at",
 		"updated_at",
 	}).
-		AddRow("", "", "", "", "", "", "")
+		AddRow("", "", "", "", "", "")
 	query := "SELECT \\* FROM users WHERE id = \\$1"
 	mock.ExpectQuery(query).WillReturnRows(rows)
 	userRepo := postgreRepository.NewPostgreUserRepository(db)
@@ -154,13 +146,12 @@ func TestGetByIDFailure(t *testing.T) {
 func TestStore(t *testing.T) {
 	now := time.Now()
 	user := &domain.User{
-		ID:         12,
-		Name:       "Homer Simpson",
-		Email:      "homer@simpsons.org",
-		Password:   "123",
-		SuperAdmin: true,
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		ID:        12,
+		Name:      "Homer Simpson",
+		Email:     "homer@simpsons.org",
+		Password:  "123",
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	db, mock, err := sqlxmock.Newx()
@@ -175,11 +166,10 @@ func TestStore(t *testing.T) {
 		name, 
 		email, 
 		password,
-		superadmin,
 		created_at, 
 		updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		VALUES ($1, $2, $3, $4, $5)
 		`
 
 	mock.ExpectBegin()
@@ -187,7 +177,6 @@ func TestStore(t *testing.T) {
 		user.Name,
 		user.Email,
 		user.Password,
-		user.SuperAdmin,
 		user.CreatedAt,
 		user.UpdatedAt,
 	).WillReturnResult(sqlxmock.NewResult(12, 1))
@@ -213,16 +202,15 @@ func TestStoreFailure(t *testing.T) {
 		name, 
 		email, 
 		password,
-		superadmin,
 		created_at, 
 		updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		VALUES ($1, $2, $3, $4, $5)
 		`
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(query)).WithArgs(
-		"", "", "", "", "", "",
+		"", "", "", "", "",
 	).WillReturnResult(sqlxmock.NewResult(12, 1))
 	mock.ExpectCommit()
 	userRepo := postgreRepository.NewPostgreUserRepository(db)
@@ -233,12 +221,11 @@ func TestStoreFailure(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	now := time.Now()
 	user := &domain.User{
-		ID:         12,
-		Name:       "Homer Simpson",
-		Email:      "homer@simpsons.org",
-		Password:   "123",
-		SuperAdmin: true,
-		UpdatedAt:  now,
+		ID:        12,
+		Name:      "Homer Simpson",
+		Email:     "homer@simpsons.org",
+		Password:  "123",
+		UpdatedAt: now,
 	}
 
 	db, mock, err := sqlxmock.Newx()
@@ -254,9 +241,8 @@ func TestUpdate(t *testing.T) {
 		name = $1, 
 		email = $2, 
 		password = $3, 
-		superadmin = $4,
-		updated_at = $5
-		WHERE id = $6
+		updated_at = $4
+		WHERE id = $5
 	`
 
 	mock.ExpectBegin()
@@ -264,7 +250,6 @@ func TestUpdate(t *testing.T) {
 		user.Name,
 		user.Email,
 		user.Password,
-		user.SuperAdmin,
 		user.UpdatedAt,
 		user.ID,
 	).WillReturnResult(sqlxmock.NewResult(12, 1))
@@ -290,9 +275,8 @@ func TestUpdateFailure(t *testing.T) {
 		name = $1, 
 		email = $2, 
 		password = $3, 
-		superadmin = $4,
-		updated_at = $5
-		WHERE id = $6
+		updated_at = $4
+		WHERE id = $5
 	`
 
 	mock.ExpectBegin()
@@ -308,12 +292,11 @@ func TestUpdateFailure(t *testing.T) {
 func TestUpdateRowsAffected(t *testing.T) {
 	now := time.Now()
 	user := &domain.User{
-		ID:         12,
-		Name:       "Homer Simpson",
-		Email:      "homer@simpsons.org",
-		Password:   "123",
-		SuperAdmin: true,
-		UpdatedAt:  now,
+		ID:        12,
+		Name:      "Homer Simpson",
+		Email:     "homer@simpsons.org",
+		Password:  "123",
+		UpdatedAt: now,
 	}
 
 	db, mock, err := sqlxmock.Newx()
@@ -329,9 +312,8 @@ func TestUpdateRowsAffected(t *testing.T) {
 		name = $1, 
 		email = $2, 
 		password = $3, 
-		superadmin = $4,
-		updated_at = $5
-		WHERE id = $6
+		updated_at = $4
+		WHERE id = $5
 	`
 
 	mock.ExpectBegin()
@@ -340,7 +322,6 @@ func TestUpdateRowsAffected(t *testing.T) {
 		user.Name,
 		user.Email,
 		user.Password,
-		user.SuperAdmin,
 		user.UpdatedAt,
 		user.ID,
 	).WillReturnResult(sqlxmock.NewResult(12, 0))
