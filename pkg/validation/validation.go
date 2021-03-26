@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -17,7 +18,7 @@ func (a *APIMessage) Error() string {
 	return a.Message
 }
 
-func validationMap(err validator.FieldError) *APIMessage {
+func validationMap(err validator.FieldError, field string) *APIMessage {
 	errMap := map[string]string{
 		"required": "is required",
 		"email":    "is not valid",
@@ -25,16 +26,24 @@ func validationMap(err validator.FieldError) *APIMessage {
 		"gte":      "minimum length is " + err.Param(),
 	}
 
+	currentField := strings.ToLower(err.Field())
+
+	fmt.Println(field)
+
+	if field != "" {
+		currentField = field
+	}
+
 	return &APIMessage{
-		Message: "the " + strings.ToLower(err.Field()) + " field " + errMap[err.Tag()],
+		Message: "the " + currentField + " field " + errMap[err.Tag()],
 	}
 }
 
 // validatorMessage handles validation error messages.
-func validatorMessage(err error) error {
+func validatorMessage(err error, field string) error {
 	apiErrors := err.(validator.ValidationErrors)
 
-	return validationMap(apiErrors[0])
+	return validationMap(apiErrors[0], field)
 }
 
 // IsAValidSchema checks if a given schema is valid.
@@ -42,7 +51,18 @@ func IsAValidSchema(ctx context.Context, schema interface{}) error {
 	validate := validator.New()
 
 	if err := validate.StructCtx(ctx, schema); err != nil {
-		return validatorMessage(err)
+		return validatorMessage(err, "")
+	}
+
+	return nil
+}
+
+// IsAValidField checks if a given schema is field.
+func IsAValidField(ctx context.Context, field interface{}, name, tag string) error {
+	validate := validator.New()
+
+	if err := validate.VarCtx(ctx, field, tag); err != nil {
+		return validatorMessage(err, name)
 	}
 
 	return nil

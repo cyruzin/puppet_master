@@ -111,7 +111,17 @@ func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}
 func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 	userParams := params.Args["User"].(map[string]interface{})
 
-	password := userParams["password"].(string)
+	password := ""
+
+	if userParams["password"] != nil {
+		password = userParams["password"].(string)
+	}
+
+	err := validation.IsAValidField(params.Context, password, "password", "required,gte=8")
+	if err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return nil, err
+	}
 
 	user := &domain.User{
 		Name:      userParams["name"].(string),
