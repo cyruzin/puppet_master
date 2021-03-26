@@ -13,6 +13,8 @@ import (
 
 // UsersListQueryResolver for a list of users.
 func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	_ = checkPermission(params.Context)
+
 	users, err := r.userUseCase.Fetch(params.Context)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -23,6 +25,8 @@ func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interfa
 
 // UserQueryResolver for a single user.
 func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	_ = checkPermission(params.Context)
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -40,6 +44,8 @@ func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{},
 
 // UserCreateResolver creates a new user.
 func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}, error) {
+	_ = checkPermission(params.Context)
+
 	user, err := storeUserValidation(params)
 	if err != nil {
 		return nil, err
@@ -54,6 +60,8 @@ func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}
 
 // UserUpdateResolver updates the given user.
 func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
+	_ = checkPermission(params.Context)
+
 	user, err := updateUserValidation(params)
 	if err != nil {
 		return nil, err
@@ -68,6 +76,8 @@ func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // UserDeleteResolver deletes the given user.
 func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
+	_ = checkPermission(params.Context)
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())

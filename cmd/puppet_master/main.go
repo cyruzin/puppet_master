@@ -37,11 +37,9 @@ func init() {
 		panic(err)
 	}
 
-	env := viper.GetBool(`debug`)
-
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
-	if env {
+	if viper.GetBool(`debug`) {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 		log.Debug().Msg("running in DEVELOPMENT mode")
 	} else {
@@ -110,6 +108,7 @@ func main() {
 			"Authorization",
 			"Content-Type",
 			"X-CSRF-Token",
+			"X-Login",
 		},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
@@ -120,12 +119,13 @@ func main() {
 		cors.Handler,
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.LoggerMiddleware,
+		middleware.AuthMiddleware,
 	)
 
 	chiHandler.Handle("/graphql", graphqlHandler)
 
 	srv := &http.Server{
-		Addr:              viper.GetString(`server.port`),
+		Addr:              ":" + viper.GetString(`server.port`),
 		ReadTimeout:       viper.GetDuration(`server.read_timeout`),
 		ReadHeaderTimeout: viper.GetDuration(`server.read_header_timeout`),
 		WriteTimeout:      viper.GetDuration(`server.write_timeout`),
@@ -147,7 +147,7 @@ func main() {
 		close(idleConnsClosed)
 	}()
 
-	log.Info().Msgf("the server is running on port %s: ", viper.GetString(`server.port`))
+	log.Info().Msgf("the server is running on port: %s", viper.GetString(`server.port`))
 	log.Info().Msg("you're good to go! :)")
 
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {

@@ -4,6 +4,10 @@ import (
 	"context"
 )
 
+type contextKey int
+
+const ContextKeyID contextKey = iota
+
 // Auth represent the auth's model.
 type Auth struct {
 	ID       int64  `json:"id,omitempty"`
@@ -31,10 +35,10 @@ type AuthRepository interface {
 	// ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (bool, error)
 	// ResetPassword(ctx context.Context, email string) (bool, error)
 
-	// AssignRole(role string, userID int64) error
-	// RemoveRole(role string, userID int64) error
+	// AssignRole(role string, id int64) error
+	// RemoveRole(role string, id int64) error
 
-	// GivePermissionTo(permission string, userID int64) error
-	// RemovePermissionTo(permission string, userID int64) error
-	// SyncPermission(permission string, userID int64) error
+	// GivePermissionTo(permission string, id int64) error
+	// RemovePermissionTo(permission string, id int64) error
+	// SyncPermission(permission string, id int64) error
 }

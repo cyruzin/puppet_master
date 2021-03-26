@@ -42,7 +42,7 @@ var userInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"password": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
 		},
 		"created_at": &graphql.InputObjectFieldConfig{
 			Type: graphql.DateTime,
