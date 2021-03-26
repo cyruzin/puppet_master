@@ -1,6 +1,7 @@
 package gql
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -13,7 +14,10 @@ import (
 
 // UsersListQueryResolver for a list of users.
 func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	_ = checkPermission(params.Context)
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.User{}, errors.New("insufficient permission")
+	}
 
 	users, err := r.userUseCase.Fetch(params.Context)
 	if err != nil {
@@ -25,7 +29,10 @@ func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interfa
 
 // UserQueryResolver for a single user.
 func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	_ = checkPermission(params.Context)
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.User{}, errors.New("insufficient permission")
+	}
 
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
@@ -44,7 +51,10 @@ func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{},
 
 // UserCreateResolver creates a new user.
 func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	_ = checkPermission(params.Context)
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.User{}, errors.New("insufficient permission")
+	}
 
 	user, err := storeUserValidation(params)
 	if err != nil {
@@ -60,7 +70,10 @@ func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}
 
 // UserUpdateResolver updates the given user.
 func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	_ = checkPermission(params.Context)
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.User{}, errors.New("insufficient permission")
+	}
 
 	user, err := updateUserValidation(params)
 	if err != nil {
@@ -76,7 +89,10 @@ func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // UserDeleteResolver deletes the given user.
 func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	_ = checkPermission(params.Context)
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.User{}, errors.New("insufficient permission")
+	}
 
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {

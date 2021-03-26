@@ -109,6 +109,7 @@ func main() {
 			"Content-Type",
 			"X-CSRF-Token",
 			"X-Login",
+			"X-Public",
 		},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,

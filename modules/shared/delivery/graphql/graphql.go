@@ -33,12 +33,14 @@ func NewRoot(
 	}
 	root := Root{
 		Query: graphql.NewObject(graphql.ObjectConfig{
-			Name:   "Query",
-			Fields: resolver.queryFields(),
+			Name:        "Queries",
+			Fields:      resolver.queryFields(),
+			Description: "All Puppet Master queries",
 		}),
 		Mutation: graphql.NewObject(graphql.ObjectConfig{
-			Name:   "Mutation",
-			Fields: resolver.mutationFields(),
+			Name:        "Mutations",
+			Fields:      resolver.mutationFields(),
+			Description: "All Puppet Master mutations",
 		}),
 	}
 

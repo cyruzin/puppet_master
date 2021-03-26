@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/cyruzin/puppet_master/domain"
+	"github.com/cyruzin/puppet_master/pkg/util"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rs/zerolog/log"
 )
@@ -32,31 +32,25 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-type authError struct {
-	Error string `json:"error"`
-}
-
-func decodeError(w http.ResponseWriter, r *http.Request, err error) {
-	log.Error().Msg(err.Error())
-
-	e := &authError{Error: err.Error()}
-
-	if err := json.NewEncoder(w).Encode(e); err != nil {
-		w.Write([]byte("could not encode the payload"))
-		return
-	}
-}
-
 // AuthMiddleware checks if the request contains Bearer Token on the
 // headers and if it is valid.
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		isPublic := r.Header.Get("X-Public")
+
+		if isPublic != "" {
+			log.Info().Msg("public route, no check is needed")
+			ctx := context.WithValue(r.Context(), domain.ContextKeyID, "")
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
+
 		isAuthentication := r.Header.Get("X-Login")
 
 		if isAuthentication != "" {
 			// TODO: Get this value from the config file
 			if isAuthentication != "Puppet" {
-				decodeError(w, r, errors.New("x-login header do not match"))
+				util.DecodeError(w, r, errors.New("x-login header do not match"))
 				return
 			}
 
@@ -68,13 +62,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
-			decodeError(w, r, errors.New("authorization header was not provided"))
+			util.DecodeError(w, r, errors.New("authorization header was not provided"))
 			return
 		}
 
 		// Checking if the header contains Bearer string and if the token exists.
 		if !strings.Contains(authHeader, "Bearer") || len(strings.Split(authHeader, "Bearer ")) == 1 {
-			decodeError(w, r, errors.New("malformed token"))
+			util.DecodeError(w, r, errors.New("malformed token"))
 			return
 		}
 
@@ -83,7 +77,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		token, err := jwt.ParseString(jwtString)
 		if err != nil {
-			decodeError(w, r, errors.New("failed to parse the token"))
+			util.DecodeError(w, r, errors.New("failed to parse the token"))
 			return
 		}
 
