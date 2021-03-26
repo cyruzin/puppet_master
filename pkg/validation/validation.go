@@ -2,7 +2,6 @@ package validation
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -27,8 +26,6 @@ func validationMap(err validator.FieldError, field string) *APIMessage {
 	}
 
 	currentField := strings.ToLower(err.Field())
-
-	fmt.Println(field)
 
 	if field != "" {
 		currentField = field

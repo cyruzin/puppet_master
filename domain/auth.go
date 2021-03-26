@@ -13,7 +13,7 @@ type Auth struct {
 	ID       int64  `json:"id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password,omitempty" validate:"required,min=8"`
+	Password string `json:"password,omitempty" validate:"required,gte=8"`
 	Token    string `json:"token,omitempty"`
 }
 
