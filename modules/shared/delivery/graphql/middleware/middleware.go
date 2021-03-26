@@ -9,8 +9,10 @@ import (
 
 	"github.com/cyruzin/puppet_master/domain"
 	"github.com/cyruzin/puppet_master/pkg/util"
+	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 // LoggerMiddleware logs the details of all requests.
@@ -36,33 +38,12 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 // headers and if it is valid.
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		isPublic := r.Header.Get("X-Public")
-
-		if isPublic != "" {
-			log.Info().Msg("public route, no check is needed")
-			ctx := context.WithValue(r.Context(), domain.ContextKeyID, "")
-			next.ServeHTTP(w, r.WithContext(ctx))
-			return
-		}
-
-		isAuthentication := r.Header.Get("X-Login")
-
-		if isAuthentication != "" {
-			// TODO: Get this value from the config file
-			if isAuthentication != "Puppet" {
-				util.DecodeError(w, r, errors.New("x-login header do not match"))
-				return
-			}
-
-			log.Info().Msg("new login, no check is needed")
-			next.ServeHTTP(w, r)
-			return
-		}
-
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
-			util.DecodeError(w, r, errors.New("authorization header was not provided"))
+			log.Info().Msg("public route, no check is needed")
+			ctx := context.WithValue(r.Context(), domain.ContextKeyID, "")
+			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}
 
@@ -75,9 +56,16 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// Capturing the token.
 		jwtString := strings.Split(authHeader, "Bearer ")[1]
 
-		token, err := jwt.ParseString(jwtString)
+		// Parsing the token to verify its authenticity.
+		token, err := jwt.ParseString(jwtString, jwt.WithVerify(jwa.HS256, []byte(viper.GetString(`jwt_secret`))))
 		if err != nil {
-			util.DecodeError(w, r, errors.New("failed to parse the token"))
+			util.DecodeError(w, r, err)
+			return
+		}
+
+		// Validating the content.
+		if err := jwt.Validate(token); err != nil {
+			util.DecodeError(w, r, err)
 			return
 		}
 

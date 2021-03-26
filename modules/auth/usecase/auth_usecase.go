@@ -2,8 +2,6 @@ package usecase
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"errors"
 	"time"
 
@@ -12,6 +10,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 type authUseCase struct {
@@ -53,27 +52,11 @@ func (a *authUseCase) GenerateToken() (string, error) {
 	t.Set(jwt.AudienceKey, "Auth Services")
 	t.Set(jwt.ExpirationKey, time.Now().Add(time.Hour*2).Unix())
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		log.Error().Stack().Err(err).Msgf("failed to generate private key: %s\n", err)
-		return "", err
-	}
-
-	payload, err := jwt.Sign(t, jwa.RS256, privateKey)
+	payload, err := jwt.Sign(t, jwa.HS256, []byte(viper.GetString(`jwt_secret`)))
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return "", err
 	}
 
 	return string(payload), nil
-}
-
-func (a *authUseCase) ParseToken(payload string) (interface{}, error) {
-	token, err := jwt.ParseString(payload)
-	if err != nil {
-		log.Error().Stack().Err(err).Msgf("failed to parse payload: %s\n", err)
-		return nil, err
-	}
-
-	return token, nil
 }

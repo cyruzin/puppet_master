@@ -1,6 +1,7 @@
 package gql
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -12,6 +13,11 @@ import (
 
 // RolesListQueryResolver for a list of roles.
 func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Role{}, errors.New("insufficient permission")
+	}
+
 	role, err := r.roleUseCase.Fetch(params.Context)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -22,6 +28,11 @@ func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interfa
 
 // RoleQueryResolver for a single role.
 func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Role{}, errors.New("insufficient permission")
+	}
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -39,6 +50,11 @@ func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{},
 
 // RoleCreateResolver creates a new role.
 func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Role{}, errors.New("insufficient permission")
+	}
+
 	role, err := storeRoleValidation(params)
 	if err != nil {
 		return nil, err
@@ -53,6 +69,11 @@ func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}
 
 // RoleUpdateResolver updates the given role.
 func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Role{}, errors.New("insufficient permission")
+	}
+
 	role, err := updateRoleValidation(params)
 	if err != nil {
 		return nil, err
@@ -67,6 +88,11 @@ func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // RoleDeleteResolver deletes the given role.
 func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Role{}, errors.New("insufficient permission")
+	}
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())

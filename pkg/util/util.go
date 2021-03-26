@@ -3,6 +3,8 @@ package util
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
+	"runtime"
 
 	"github.com/rs/zerolog/log"
 )
@@ -22,4 +24,15 @@ func DecodeError(w http.ResponseWriter, r *http.Request, err error) {
 		w.Write([]byte("could not encode the payload"))
 		return
 	}
+}
+
+func rootDir() string {
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Join(filepath.Dir(b), "../..")
+	return basepath
+}
+
+// PathBuilder builds a path.
+func PathBuilder(path string) string {
+	return rootDir() + path
 }

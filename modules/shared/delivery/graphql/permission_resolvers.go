@@ -1,6 +1,7 @@
 package gql
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -12,6 +13,11 @@ import (
 
 // PermissionsListQueryResolver for a list of permissions.
 func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Permission{}, errors.New("insufficient permission")
+	}
+
 	permission, err := r.permissionUseCase.Fetch(params.Context)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -22,6 +28,11 @@ func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (i
 
 // PermissionQueryResolver for a single permission.
 func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Permission{}, errors.New("insufficient permission")
+	}
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -38,6 +49,11 @@ func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interf
 
 // PermissionCreateResolver creates a new permission.
 func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Permission{}, errors.New("insufficient permission")
+	}
+
 	permission, err := storePermissionValidation(params)
 	if err != nil {
 		return nil, err
@@ -52,6 +68,11 @@ func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (inter
 
 // PermissionUpdateResolver updates the given permission.
 func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Permission{}, errors.New("insufficient permission")
+	}
+
 	permission, err := updatePermissionValidation(params)
 	if err != nil {
 		return nil, err
@@ -66,6 +87,11 @@ func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (inter
 
 // PermissionDeleteResolver deletes the given permission.
 func (r *Resolver) PermissionDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
+	allow := checkPermission(params.Context)
+	if !allow {
+		return []*domain.Permission{}, errors.New("insufficient permission")
+	}
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())

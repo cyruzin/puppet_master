@@ -7,9 +7,6 @@
     "write_timeout": "5s",
     "idle_timeout": "60s"
   },
-  "context": {
-    "timeout": 2
-  },
   "database": {
     "driver": "pgx",
     "host": "localhost",
@@ -17,5 +14,6 @@
     "user": "puppet",
     "pass": "master",
     "name": "puppet_master"
-  }
+  },
+  "jwt_secret": "secret"
 }

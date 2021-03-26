@@ -22,7 +22,6 @@ type AuthUsecase interface {
 	Authenticate(ctx context.Context, email, password string) (string, error)
 
 	GenerateToken() (string, error)
-	ParseToken(token string) (interface{}, error)
 
 	// ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (bool, error)
 	// ResetPassword(ctx context.Context, email string) (bool, error)

@@ -17,6 +17,7 @@ import (
 	"github.com/cyruzin/puppet_master/modules/shared/delivery/graphql/middleware"
 	userRepo "github.com/cyruzin/puppet_master/modules/user/repository/postgres"
 	userUseCase "github.com/cyruzin/puppet_master/modules/user/usecase"
+	"github.com/cyruzin/puppet_master/pkg/util"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
@@ -32,7 +33,7 @@ import (
 )
 
 func init() {
-	viper.SetConfigFile(`../../config.json`)
+	viper.SetConfigFile(util.PathBuilder("./config.json"))
 	if err := viper.ReadInConfig(); err != nil {
 		panic(err)
 	}
@@ -108,8 +109,6 @@ func main() {
 			"Authorization",
 			"Content-Type",
 			"X-CSRF-Token",
-			"X-Login",
-			"X-Public",
 		},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
