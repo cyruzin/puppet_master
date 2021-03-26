@@ -57,7 +57,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		jwtString := strings.Split(authHeader, "Bearer ")[1]
 
 		// Parsing the token to verify its authenticity.
-		token, err := jwt.ParseString(jwtString, jwt.WithVerify(jwa.HS256, []byte(viper.GetString(`jwt_secret`))))
+		token, err := jwt.ParseString(jwtString, jwt.WithVerify(jwa.HS256, []byte(viper.GetString(`jwt.secret`))))
 		if err != nil {
 			util.DecodeError(w, r, err)
 			return

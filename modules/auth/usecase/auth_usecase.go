@@ -47,12 +47,12 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 
 func (a *authUseCase) GenerateToken() (string, error) {
 	t := jwt.New()
-	t.Set(jwt.IssuerKey, "Puppet Master")
-	t.Set(jwt.SubjectKey, "https://github.com/cyruzin/puppet_master")
-	t.Set(jwt.AudienceKey, "Auth Services")
-	t.Set(jwt.ExpirationKey, time.Now().Add(time.Hour*2).Unix())
+	t.Set(jwt.IssuerKey, viper.GetString(`jwt.issuer`))
+	t.Set(jwt.SubjectKey, viper.GetString(`jwt.subject`))
+	t.Set(jwt.AudienceKey, viper.GetString(`jwt.audience`))
+	t.Set(jwt.ExpirationKey, time.Now().Add(time.Hour*viper.GetDuration(`jwt.expiration`)).Unix())
 
-	payload, err := jwt.Sign(t, jwa.HS256, []byte(viper.GetString(`jwt_secret`)))
+	payload, err := jwt.Sign(t, jwa.HS256, []byte(viper.GetString(`jwt.secret`)))
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return "", err

@@ -15,5 +15,11 @@
     "pass": "master",
     "name": "puppet_master"
   },
-  "jwt_secret": "secret"
+  "jwt": {
+    "issuer": "Puppet Master",
+    "subject": "https: //github.com/cyruzin/puppet_master",
+    "audience": "Auth Services",
+    "expiration": "2",
+    "secret": "secret"
+  }
 }
