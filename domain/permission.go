@@ -32,12 +32,12 @@ type PermissionRepository interface {
 	Delete(ctx context.Context, id int64) error
 
 	GetPermissionsByRoleID(ctx context.Context, roleID int64) ([]*Permission, error)
-	GivePermissionToRole(ctx context.Context, permissions []string, roleID int64) error
-	RemovePermissionToRole(ctx context.Context, permissions []string, roleID int64) error
-	SyncPermissionToRole(ctx context.Context, permissions []string, roleID int64) error
+	GivePermissionToRole(ctx context.Context, permissions []int, roleID int64) error
+	RemovePermissionToRole(ctx context.Context, permissions []int, roleID int64) error
+	SyncPermissionToRole(ctx context.Context, permissions []int, roleID int64) error
 
 	GetPermissionsByUserID(ctx context.Context, userID int64) ([]*Permission, error)
-	GivePermissionToUser(ctx context.Context, permissions []string, userID int64) error
-	RemovePermissionToUser(ctx context.Context, permissions []string, userID int64) error
-	SyncPermissionToUser(ctx context.Context, permissions []string, userID int64) error
+	GivePermissionToUser(ctx context.Context, permissions []int, userID int64) error
+	RemovePermissionToUser(ctx context.Context, permissions []int, userID int64) error
+	SyncPermissionToUser(ctx context.Context, permissions []int, userID int64) error
 }

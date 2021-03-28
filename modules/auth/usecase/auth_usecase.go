@@ -14,29 +14,70 @@ import (
 )
 
 type authUseCase struct {
-	authRepo domain.AuthRepository
+	authRepo       domain.AuthRepository
+	permissionRepo domain.PermissionRepository
+	roleRepo       domain.RoleRepository
+	userRepo       domain.UserRepository
 }
 
 // NewAuthUsecase will create new an authUsecase object representation
 // of domain.AuthUsecase interface.
-func NewAuthUsecase(auth domain.AuthRepository) domain.AuthUsecase {
+func NewAuthUsecase(
+	auth domain.AuthRepository,
+	permission domain.PermissionRepository,
+	role domain.RoleRepository,
+	user domain.UserRepository,
+) domain.AuthUsecase {
 	return &authUseCase{
-		authRepo: auth,
+		authRepo:       auth,
+		permissionRepo: permission,
+		roleRepo:       role,
+		userRepo:       user,
 	}
 }
 
 func (a *authUseCase) Authenticate(ctx context.Context, email, password string) (string, error) {
-	hashedPassword, err := a.authRepo.Authenticate(ctx, email)
+	user, err := a.authRepo.Authenticate(ctx, email)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return "", err
 	}
 
-	if match := crypto.CheckPasswordHash(password, hashedPassword); !match {
+	if match := crypto.CheckPasswordHash(password, user.Password); !match {
 		return "", errors.New("authentication failed")
 	}
 
-	token, err := a.GenerateToken()
+	permissions, err := a.permissionRepo.GetPermissionsByUserID(ctx, user.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return "", err
+	}
+
+	roles, err := a.roleRepo.GetRolesByUserID(ctx, user.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return "", err
+	}
+
+	auth := &domain.Auth{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+	}
+
+	if len(permissions) > 1 {
+		for _, permission := range permissions {
+			auth.Permissions = append(auth.Permissions, permission.Name)
+		}
+	}
+
+	if len(roles) > 1 {
+		for _, role := range roles {
+			auth.Roles = append(auth.Roles, role.Name)
+		}
+	}
+
+	token, err := a.GenerateToken(auth)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return "", err
@@ -45,12 +86,13 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 	return token, nil
 }
 
-func (a *authUseCase) GenerateToken() (string, error) {
+func (a *authUseCase) GenerateToken(auth *domain.Auth) (string, error) {
 	t := jwt.New()
 	t.Set(jwt.IssuerKey, viper.GetString(`jwt.issuer`))
 	t.Set(jwt.SubjectKey, viper.GetString(`jwt.subject`))
 	t.Set(jwt.AudienceKey, viper.GetString(`jwt.audience`))
 	t.Set(jwt.ExpirationKey, time.Now().Add(time.Hour*viper.GetDuration(`jwt.expiration`)).Unix())
+	t.Set(`user`, auth)
 
 	payload, err := jwt.Sign(t, jwa.HS256, []byte(viper.GetString(`jwt.secret`)))
 	if err != nil {

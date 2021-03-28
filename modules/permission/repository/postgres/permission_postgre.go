@@ -203,7 +203,7 @@ func (p *postgreRepository) GetPermissionsByRoleID(ctx context.Context, roleID i
 	return permissions, nil
 }
 
-func (p *postgreRepository) GivePermissionToRole(ctx context.Context, permissions []string, roleID int64) error {
+func (p *postgreRepository) GivePermissionToRole(ctx context.Context, permissions []int, roleID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -242,7 +242,7 @@ func (p *postgreRepository) GivePermissionToRole(ctx context.Context, permission
 	return nil
 }
 
-func (p *postgreRepository) RemovePermissionToRole(ctx context.Context, permissions []string, roleID int64) error {
+func (p *postgreRepository) RemovePermissionToRole(ctx context.Context, permissions []int, roleID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -275,7 +275,7 @@ func (p *postgreRepository) RemovePermissionToRole(ctx context.Context, permissi
 	return nil
 }
 
-func (p *postgreRepository) SyncPermissionToRole(ctx context.Context, permissions []string, roleID int64) error {
+func (p *postgreRepository) SyncPermissionToRole(ctx context.Context, permissions []int, roleID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -333,7 +333,7 @@ func (p *postgreRepository) GetPermissionsByUserID(ctx context.Context, userID i
 	return permissions, nil
 }
 
-func (p *postgreRepository) GivePermissionToUser(ctx context.Context, permissions []string, userID int64) error {
+func (p *postgreRepository) GivePermissionToUser(ctx context.Context, permissions []int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -372,7 +372,7 @@ func (p *postgreRepository) GivePermissionToUser(ctx context.Context, permission
 	return nil
 }
 
-func (p *postgreRepository) RemovePermissionToUser(ctx context.Context, permissions []string, userID int64) error {
+func (p *postgreRepository) RemovePermissionToUser(ctx context.Context, permissions []int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -405,7 +405,7 @@ func (p *postgreRepository) RemovePermissionToUser(ctx context.Context, permissi
 	return nil
 }
 
-func (p *postgreRepository) SyncPermissionToUser(ctx context.Context, permissions []string, userID int64) error {
+func (p *postgreRepository) SyncPermissionToUser(ctx context.Context, permissions []int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())

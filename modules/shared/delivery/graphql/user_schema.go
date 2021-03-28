@@ -19,6 +19,16 @@ var userType = graphql.NewObject(graphql.ObjectConfig{
 		"password": &graphql.Field{
 			Type: graphql.String,
 		},
+		"roles": &graphql.Field{
+			Type: &graphql.List{
+				OfType: graphql.Int,
+			},
+		},
+		"permissions": &graphql.Field{
+			Type: &graphql.List{
+				OfType: graphql.Int,
+			},
+		},
 		"created_at": &graphql.Field{
 			Type: graphql.DateTime,
 		},
@@ -43,6 +53,16 @@ var userInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"password": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
+		},
+		"roles": &graphql.InputObjectFieldConfig{
+			Type: &graphql.List{
+				OfType: graphql.Int,
+			},
+		},
+		"permissions": &graphql.InputObjectFieldConfig{
+			Type: &graphql.List{
+				OfType: graphql.Int,
+			},
 		},
 		"created_at": &graphql.InputObjectFieldConfig{
 			Type: graphql.DateTime,

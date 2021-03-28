@@ -173,7 +173,35 @@ func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (p *postgreRepository) AssignRole(ctx context.Context, roles []string, userID int64) error {
+func (p *postgreRepository) GetRolesByUserID(ctx context.Context, userID int64) ([]*domain.Role, error) {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrRoleByID
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := `SELECT * FROM roles WHERE id = $1`
+
+	roles := []*domain.Role{}
+
+	err = p.Conn.GetContext(ctx, &roles, query, userID)
+	if err != nil && err != sql.ErrNoRows {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrRoleByID
+	}
+
+	return roles, nil
+}
+
+func (p *postgreRepository) AssignRole(ctx context.Context, roles []int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -212,7 +240,7 @@ func (p *postgreRepository) AssignRole(ctx context.Context, roles []string, user
 	return nil
 }
 
-func (p *postgreRepository) RemoveRole(ctx context.Context, roles []string, userID int64) error {
+func (p *postgreRepository) RemoveRole(ctx context.Context, roles []int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -245,7 +273,7 @@ func (p *postgreRepository) RemoveRole(ctx context.Context, roles []string, user
 	return nil
 }
 
-func (p *postgreRepository) SyncRole(ctx context.Context, roles []string, userID int64) error {
+func (p *postgreRepository) SyncRole(ctx context.Context, roles []int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())

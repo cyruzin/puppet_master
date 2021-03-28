@@ -68,9 +68,6 @@ func main() {
 
 	defer dbConnection.Close()
 
-	aRepo := authRepo.NewPostgreAuthRepository(dbConnection)
-	aCase := authUseCase.NewAuthUsecase(aRepo)
-
 	pRepo := permissionRepo.NewPostgrePermissionRepository(dbConnection)
 	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
 
@@ -79,6 +76,9 @@ func main() {
 
 	uRepo := userRepo.NewPostgreUserRepository(dbConnection)
 	uCase := userUseCase.NewUserUsecase(pRepo, rRepo, uRepo)
+
+	aRepo := authRepo.NewPostgreAuthRepository(dbConnection)
+	aCase := authUseCase.NewAuthUsecase(aRepo, pRepo, rRepo, uRepo)
 
 	root := gql.NewRoot(aCase, pCase, rCase, uCase)
 

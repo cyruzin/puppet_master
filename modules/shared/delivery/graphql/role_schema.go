@@ -16,6 +16,11 @@ var roleType = graphql.NewObject(graphql.ObjectConfig{
 		"description": &graphql.Field{
 			Type: graphql.String,
 		},
+		"permissions": &graphql.Field{
+			Type: &graphql.List{
+				OfType: graphql.Int,
+			},
+		},
 		"created_at": &graphql.Field{
 			Type: graphql.DateTime,
 		},
@@ -37,6 +42,11 @@ var roleInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"description": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
+		},
+		"permissions": &graphql.InputObjectFieldConfig{
+			Type: &graphql.List{
+				OfType: graphql.Int,
+			},
 		},
 		"created_at": &graphql.InputObjectFieldConfig{
 			Type: graphql.DateTime,
