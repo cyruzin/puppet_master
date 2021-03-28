@@ -65,13 +65,13 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		Email: user.Email,
 	}
 
-	if len(permissions) > 1 {
+	if len(permissions) >= 1 {
 		for _, permission := range permissions {
 			auth.Permissions = append(auth.Permissions, permission.Name)
 		}
 	}
 
-	if len(roles) > 1 {
+	if len(roles) >= 1 {
 		for _, role := range roles {
 			auth.Roles = append(auth.Roles, role.Name)
 		}

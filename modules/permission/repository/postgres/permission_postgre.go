@@ -190,11 +190,21 @@ func (p *postgreRepository) GetPermissionsByRoleID(ctx context.Context, roleID i
 		err = tx.Commit()
 	}()
 
-	query := "SELECT * FROM permissions WHERE id = $1"
+	query := `SELECT 
+							p.id, 
+							p.name, 
+							p.description, 
+							p.created_at, 
+							p.updated_at
+					 FROM permissions p
+					 JOIN permission_role pr ON pr.permission_id = p.id
+					 JOIN roles r ON r.id = pr.role_id
+					 WHERE r.id = $1
+					 GROUP BY p.id`
 
 	permissions := []*domain.Permission{}
 
-	err = p.Conn.GetContext(ctx, &permissions, query, roleID)
+	err = p.Conn.SelectContext(ctx, &permissions, query, roleID)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrPermissionByID
@@ -320,11 +330,21 @@ func (p *postgreRepository) GetPermissionsByUserID(ctx context.Context, userID i
 		err = tx.Commit()
 	}()
 
-	query := "SELECT * FROM permissions WHERE id = $1"
+	query := `SELECT 
+							p.id, 
+							p.name, 
+							p.description, 
+							p.created_at, 
+							p.updated_at
+					 FROM permissions p
+					 JOIN permission_user pu ON pu.permission_id = p.id
+					 JOIN users u ON u.id = pu.user_id
+					 WHERE u.id = $1
+					 GROUP BY p.id`
 
 	permissions := []*domain.Permission{}
 
-	err = p.Conn.GetContext(ctx, &permissions, query, userID)
+	err = p.Conn.SelectContext(ctx, &permissions, query, userID)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrPermissionByID

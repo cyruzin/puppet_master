@@ -188,11 +188,21 @@ func (p *postgreRepository) GetRolesByUserID(ctx context.Context, userID int64) 
 		err = tx.Commit()
 	}()
 
-	query := `SELECT * FROM roles WHERE id = $1`
+	query := `SELECT 
+							r.id, 
+							r.name, 
+							r.description, 
+							r.created_at, 
+							r.updated_at
+					 FROM roles r
+					 JOIN role_user ru ON ru.role_id = r.id
+					 JOIN users u ON u.id = ru.role_id
+					 WHERE u.id = $1
+					 GROUP BY r.id`
 
 	roles := []*domain.Role{}
 
-	err = p.Conn.GetContext(ctx, &roles, query, userID)
+	err = p.Conn.SelectContext(ctx, &roles, query, userID)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrRoleByID
