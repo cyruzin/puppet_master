@@ -10,12 +10,22 @@ import (
 )
 
 type postgreRepository struct {
-	Conn *sqlx.DB
+	Conn           *sqlx.DB
+	permissionRepo domain.PermissionRepository
+	roleRepo       domain.RoleRepository
 }
 
 // NewPostgreUserRepository will create an object that represent the user.Repository interface.
-func NewPostgreUserRepository(Conn *sqlx.DB) domain.UserRepository {
-	return &postgreRepository{Conn}
+func NewPostgreUserRepository(
+	Conn *sqlx.DB,
+	permissionRepo domain.PermissionRepository,
+	roleRepo domain.RoleRepository,
+) domain.UserRepository {
+	return &postgreRepository{
+		Conn,
+		permissionRepo,
+		roleRepo,
+	}
 }
 
 func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.User, error) {
@@ -46,11 +56,11 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.User
 	return &user, nil
 }
 
-func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error {
+func (p *postgreRepository) Store(ctx context.Context, user *domain.User) (*domain.User, error) {
 	tx, err := p.Conn.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrStoreError
+		return nil, domain.ErrStoreError
 	}
 
 	defer func() {
@@ -70,10 +80,14 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 		updated_at
 		)
 		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
 		`
 
-	_, err = tx.ExecContext(
+	var lastID int64
+
+	err = tx.GetContext(
 		ctx,
+		&lastID,
 		query,
 		user.Name,
 		user.Email,
@@ -83,17 +97,41 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) error 
 	)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrStoreError
+		return nil, domain.ErrStoreError
 	}
 
-	return nil
+	tx.Commit()
+
+	newUser, err := p.GetByID(ctx, lastID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrStoreError
+	}
+
+	if len(user.Roles) > 0 {
+		err = p.roleRepo.AssignRole(ctx, user.Roles, lastID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return nil, err
+		}
+	}
+
+	if len(user.Permissions) > 0 {
+		err = p.permissionRepo.GivePermissionToUser(ctx, user.Permissions, lastID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return nil, err
+		}
+	}
+
+	return newUser, nil
 }
 
-func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error {
+func (p *postgreRepository) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
 	tx, err := p.Conn.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrUpdateError
 	}
 
 	defer func() {
@@ -113,7 +151,6 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error
 		updated_at = $4
 		WHERE id = $5
 	`
-
 	result, err := tx.ExecContext(
 		ctx,
 		query,
@@ -125,20 +162,40 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) error
 	)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrUpdateError
 	}
+
+	tx.Commit()
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrDeleteError
 	}
 
 	if rowsAffected == 0 {
-		return domain.ErrNotFound
+		return nil, domain.ErrNotFound
 	}
 
-	return nil
+	updatedUser, err := p.GetByID(ctx, user.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrStoreError
+	}
+
+	err = p.roleRepo.SyncRole(ctx, user.Roles, updatedUser.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	err = p.permissionRepo.SyncPermissionToUser(ctx, user.Permissions, updatedUser.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	return updatedUser, nil
 }
 
 func (p *postgreRepository) Delete(ctx context.Context, id int64) error {

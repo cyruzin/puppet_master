@@ -44,40 +44,24 @@ func (r *roleUseCase) GetByID(ctx context.Context, id int64) (*domain.Role, erro
 	return role, nil
 }
 
-func (r *roleUseCase) Store(ctx context.Context, role *domain.Role) error {
-	err := r.roleRepo.Store(ctx, role)
+func (r *roleUseCase) Store(ctx context.Context, role *domain.Role) (*domain.Role, error) {
+	newRole, err := r.roleRepo.Store(ctx, role)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return err
+		return nil, err
 	}
 
-	if len(role.Permissions) > 0 {
-		err = r.permissionRepo.GivePermissionToRole(ctx, role.Permissions, role.ID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return err
-		}
-	}
-
-	return nil
+	return newRole, nil
 }
 
-func (r *roleUseCase) Update(ctx context.Context, role *domain.Role) error {
-	err := r.roleRepo.Update(ctx, role)
+func (r *roleUseCase) Update(ctx context.Context, role *domain.Role) (*domain.Role, error) {
+	updatedRole, err := r.roleRepo.Update(ctx, role)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return err
+		return nil, err
 	}
 
-	if len(role.Permissions) > 0 {
-		err = r.permissionRepo.SyncPermissionToRole(ctx, role.Permissions, role.ID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return err
-		}
-	}
-
-	return nil
+	return updatedRole, nil
 }
 
 func (r *roleUseCase) Delete(ctx context.Context, id int64) error {
@@ -88,4 +72,14 @@ func (r *roleUseCase) Delete(ctx context.Context, id int64) error {
 	}
 
 	return nil
+}
+
+func (r *roleUseCase) GetRolesByUserID(ctx context.Context, userID int64) ([]*domain.Role, error) {
+	roles, err := r.roleRepo.GetRolesByUserID(ctx, userID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	return roles, nil
 }

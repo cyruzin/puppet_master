@@ -1,7 +1,6 @@
 package gql
 
 import (
-	"errors"
 	"strconv"
 	"time"
 
@@ -13,9 +12,9 @@ import (
 
 // PermissionsListQueryResolver for a list of permissions.
 func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Permission{}, errors.New("insufficient permission")
+		return []*domain.Permission{}, domain.ErrUnauthorized
 	}
 
 	permission, err := r.permissionUseCase.Fetch(params.Context)
@@ -28,9 +27,9 @@ func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (i
 
 // PermissionQueryResolver for a single permission.
 func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Permission{}, errors.New("insufficient permission")
+		return []*domain.Permission{}, domain.ErrUnauthorized
 	}
 
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
@@ -49,9 +48,9 @@ func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interf
 
 // PermissionCreateResolver creates a new permission.
 func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Permission{}, errors.New("insufficient permission")
+		return []*domain.Permission{}, domain.ErrUnauthorized
 	}
 
 	permission, err := storePermissionValidation(params)
@@ -59,18 +58,20 @@ func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (inter
 		return nil, err
 	}
 
-	if err := r.permissionUseCase.Store(params.Context, permission); err != nil {
+	permission, err = r.permissionUseCase.Store(params.Context, permission)
+	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
-	return nil, nil
+
+	return permission, nil
 }
 
 // PermissionUpdateResolver updates the given permission.
 func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Permission{}, errors.New("insufficient permission")
+		return []*domain.Permission{}, domain.ErrUnauthorized
 	}
 
 	permission, err := updatePermissionValidation(params)
@@ -78,18 +79,20 @@ func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (inter
 		return nil, err
 	}
 
-	if err := r.permissionUseCase.Update(params.Context, permission); err != nil {
+	permission, err = r.permissionUseCase.Update(params.Context, permission)
+	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
-	return nil, nil
+
+	return permission, nil
 }
 
 // PermissionDeleteResolver deletes the given permission.
 func (r *Resolver) PermissionDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Permission{}, errors.New("insufficient permission")
+		return []*domain.Permission{}, domain.ErrUnauthorized
 	}
 
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)

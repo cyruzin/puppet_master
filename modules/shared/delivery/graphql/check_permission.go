@@ -4,17 +4,31 @@ import (
 	"context"
 
 	"github.com/cyruzin/puppet_master/domain"
-	"github.com/rs/zerolog/log"
 )
 
-func checkPermission(ctx context.Context) bool {
-	permissions := ctx.Value(domain.ContextKeyID).(string)
+func (r *Resolver) checkPermission(ctx context.Context) bool {
+	auth := ctx.Value(domain.ContextKeyID).(*domain.Auth)
 
-	if permissions == "" {
+	if len(auth.UserPermissions) == 0 {
 		return false
 	}
 
-	log.Info().Msg(permissions)
+	userPermissions, err := r.permissionUseCase.GetPermissionsByUserID(ctx, auth.UserID)
+	if err != nil {
+		return false
+	}
+
+	for _, role := range auth.Roles {
+		if role == "admin" {
+			return true
+		}
+	}
+
+	for index, userPermission := range userPermissions {
+		if auth.UserPermissions[index] != userPermission.Name {
+			return false
+		}
+	}
 
 	return true
 }

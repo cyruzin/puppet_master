@@ -1,8 +1,8 @@
 package gql
 
-import "errors"
+import "github.com/cyruzin/puppet_master/domain"
 
 var (
 	// ErrPermission will throw if the user does not have sufficient permission.
-	ErrPermission = errors.New("insufficient permission")
+	ErrPermission = domain.ErrUnauthorized
 )

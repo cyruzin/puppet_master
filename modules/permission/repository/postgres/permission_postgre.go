@@ -47,11 +47,11 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Perm
 	return &permission, nil
 }
 
-func (p *postgreRepository) Store(ctx context.Context, permission *domain.Permission) error {
+func (p *postgreRepository) Store(ctx context.Context, permission *domain.Permission) (*domain.Permission, error) {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrStoreError
+		return nil, domain.ErrStoreError
 	}
 
 	defer func() {
@@ -70,10 +70,14 @@ func (p *postgreRepository) Store(ctx context.Context, permission *domain.Permis
 		updated_at
 		)
 		VALUES ($1, $2, $3, $4)
+		RETURNING id
 		`
 
-	_, err = p.Conn.ExecContext(
+	var lastID int64
+
+	err = p.Conn.GetContext(
 		ctx,
+		&lastID,
 		query,
 		permission.Name,
 		permission.Description,
@@ -82,17 +86,23 @@ func (p *postgreRepository) Store(ctx context.Context, permission *domain.Permis
 	)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrStoreError
+		return nil, domain.ErrStoreError
 	}
 
-	return nil
+	permission, err = p.GetByID(ctx, lastID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrStoreError
+	}
+
+	return permission, nil
 }
 
-func (p *postgreRepository) Update(ctx context.Context, permission *domain.Permission) error {
+func (p *postgreRepository) Update(ctx context.Context, permission *domain.Permission) (*domain.Permission, error) {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrUpdateError
 	}
 
 	defer func() {
@@ -122,20 +132,26 @@ func (p *postgreRepository) Update(ctx context.Context, permission *domain.Permi
 	)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrUpdateError
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrUpdateError
 	}
 
 	if rowsAffected == 0 {
-		return domain.ErrNotFound
+		return nil, domain.ErrNotFound
 	}
 
-	return nil
+	permission, err = p.GetByID(ctx, permission.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrStoreError
+	}
+
+	return permission, nil
 }
 
 func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
@@ -269,11 +285,10 @@ func (p *postgreRepository) RemovePermissionToRole(ctx context.Context, permissi
 
 	query := "DELETE FROM permission_role WHERE role_id = $1"
 
-	for _, permission := range permissions {
+	for i := 0; i <= len(permissions); i++ {
 		_, err = tx.ExecContext(
 			ctx,
 			query,
-			permission,
 			roleID,
 		)
 		if err != nil {
@@ -300,16 +315,24 @@ func (p *postgreRepository) SyncPermissionToRole(ctx context.Context, permission
 		err = tx.Commit()
 	}()
 
-	err = p.RemovePermissionToRole(ctx, permissions, roleID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrSyncPermission
-	}
+	if len(permissions) > 0 {
+		err = p.RemovePermissionToRole(ctx, permissions, roleID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncPermission
+		}
 
-	err = p.GivePermissionToRole(ctx, permissions, roleID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrSyncPermission
+		err = p.GivePermissionToRole(ctx, permissions, roleID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncPermission
+		}
+	} else {
+		err = p.RemovePermissionToRole(ctx, permissions, roleID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncPermission
+		}
 	}
 
 	return nil
@@ -409,11 +432,10 @@ func (p *postgreRepository) RemovePermissionToUser(ctx context.Context, permissi
 
 	query := "DELETE FROM permission_user WHERE user_id = $1"
 
-	for _, permission := range permissions {
+	for i := 0; i <= len(permissions); i++ {
 		_, err = tx.ExecContext(
 			ctx,
 			query,
-			permission,
 			userID,
 		)
 		if err != nil {
@@ -440,16 +462,24 @@ func (p *postgreRepository) SyncPermissionToUser(ctx context.Context, permission
 		err = tx.Commit()
 	}()
 
-	err = p.RemovePermissionToUser(ctx, permissions, userID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrSyncPermission
-	}
+	if len(permissions) > 0 {
+		err = p.RemovePermissionToUser(ctx, permissions, userID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncPermission
+		}
 
-	err = p.GivePermissionToUser(ctx, permissions, userID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrSyncPermission
+		err = p.GivePermissionToUser(ctx, permissions, userID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncPermission
+		}
+	} else {
+		err = p.RemovePermissionToUser(ctx, permissions, userID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncPermission
+		}
 	}
 
 	return nil

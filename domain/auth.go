@@ -10,13 +10,15 @@ const ContextKeyID contextKey = iota
 
 // Auth represent the auth's model.
 type Auth struct {
-	ID          int64    `json:"id,omitempty"`
-	Name        string   `json:"name,omitempty"`
-	Email       string   `json:"email" validate:"required,email"`
-	Password    string   `json:"password,omitempty" validate:"required,gte=8"`
-	Roles       []string `json:"roles"`
-	Permissions []string `json:"permissions"`
-	Token       string   `json:"token,omitempty"`
+	UserID          int64    `json:"user_id,omitempty"`
+	RoleIDs         []int64  `json:"role_ids,omitempty"`
+	Name            string   `json:"name,omitempty"`
+	Email           string   `json:"email" validate:"required,email"`
+	Password        string   `json:"password,omitempty" validate:"required,gte=8"`
+	Roles           []string `json:"roles"`
+	RolePermissions []string `json:"role_permissions"`
+	UserPermissions []string `json:"user_permissions"`
+	Token           string   `json:"token,omitempty"`
 }
 
 // AuthUsecase represent the auth's usecases.

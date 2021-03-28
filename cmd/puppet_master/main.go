@@ -71,10 +71,10 @@ func main() {
 	pRepo := permissionRepo.NewPostgrePermissionRepository(dbConnection)
 	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
 
-	rRepo := roleRepo.NewPostgreRoleRepository(dbConnection)
+	rRepo := roleRepo.NewPostgreRoleRepository(dbConnection, pRepo)
 	rCase := roleUseCase.NewRoleUsecase(pRepo, rRepo)
 
-	uRepo := userRepo.NewPostgreUserRepository(dbConnection)
+	uRepo := userRepo.NewPostgreUserRepository(dbConnection, pRepo, rRepo)
 	uCase := userUseCase.NewUserUsecase(pRepo, rRepo, uRepo)
 
 	aRepo := authRepo.NewPostgreAuthRepository(dbConnection)

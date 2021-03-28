@@ -39,24 +39,24 @@ func (p *permissionUseCase) GetByID(ctx context.Context, id int64) (*domain.Perm
 	return permission, nil
 }
 
-func (p *permissionUseCase) Store(ctx context.Context, permission *domain.Permission) error {
-	err := p.permissionRepo.Store(ctx, permission)
+func (p *permissionUseCase) Store(ctx context.Context, permission *domain.Permission) (*domain.Permission, error) {
+	permission, err := p.permissionRepo.Store(ctx, permission)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return err
+		return nil, err
 	}
 
-	return nil
+	return permission, nil
 }
 
-func (p *permissionUseCase) Update(ctx context.Context, permission *domain.Permission) error {
-	err := p.permissionRepo.Update(ctx, permission)
+func (p *permissionUseCase) Update(ctx context.Context, permission *domain.Permission) (*domain.Permission, error) {
+	permission, err := p.permissionRepo.Update(ctx, permission)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return err
+		return nil, err
 	}
 
-	return nil
+	return permission, nil
 }
 
 func (p *permissionUseCase) Delete(ctx context.Context, id int64) error {
@@ -67,4 +67,24 @@ func (p *permissionUseCase) Delete(ctx context.Context, id int64) error {
 	}
 
 	return nil
+}
+
+func (p *permissionUseCase) GetPermissionsByRoleID(ctx context.Context, roleID int64) ([]*domain.Permission, error) {
+	permissions, err := p.permissionRepo.GetPermissionsByRoleID(ctx, roleID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	return permissions, nil
+}
+
+func (p *permissionUseCase) GetPermissionsByUserID(ctx context.Context, userID int64) ([]*domain.Permission, error) {
+	permissions, err := p.permissionRepo.GetPermissionsByUserID(ctx, userID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	return permissions, nil
 }

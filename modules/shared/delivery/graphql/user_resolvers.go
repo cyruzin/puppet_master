@@ -1,7 +1,6 @@
 package gql
 
 import (
-	"errors"
 	"strconv"
 	"time"
 
@@ -14,9 +13,9 @@ import (
 
 // UsersListQueryResolver for a list of users.
 func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.User{}, errors.New("insufficient permission")
+		return []*domain.User{}, domain.ErrUnauthorized
 	}
 
 	users, err := r.userUseCase.Fetch(params.Context)
@@ -29,9 +28,9 @@ func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interfa
 
 // UserQueryResolver for a single user.
 func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.User{}, errors.New("insufficient permission")
+		return []*domain.User{}, domain.ErrUnauthorized
 	}
 
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
@@ -51,9 +50,9 @@ func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{},
 
 // UserCreateResolver creates a new user.
 func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.User{}, errors.New("insufficient permission")
+		return []*domain.User{}, domain.ErrUnauthorized
 	}
 
 	user, err := storeUserValidation(params)
@@ -61,18 +60,20 @@ func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}
 		return nil, err
 	}
 
-	if err := r.userUseCase.Store(params.Context, user); err != nil {
+	user, err = r.userUseCase.Store(params.Context, user)
+	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
-	return nil, nil
+
+	return user, nil
 }
 
 // UserUpdateResolver updates the given user.
 func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.User{}, errors.New("insufficient permission")
+		return []*domain.User{}, domain.ErrUnauthorized
 	}
 
 	user, err := updateUserValidation(params)
@@ -80,18 +81,20 @@ func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}
 		return nil, err
 	}
 
-	if err := r.userUseCase.Update(params.Context, user); err != nil {
+	user, err = r.userUseCase.Update(params.Context, user)
+	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
-	return nil, nil
+
+	return user, nil
 }
 
 // UserDeleteResolver deletes the given user.
 func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.User{}, errors.New("insufficient permission")
+		return []*domain.User{}, domain.ErrUnauthorized
 	}
 
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
@@ -111,6 +114,22 @@ func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}
 func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 	userParams := params.Args["User"].(map[string]interface{})
 
+	parsedRoles := []int{}
+
+	if userParams["roles"] != nil {
+		for _, role := range userParams["roles"].([]interface{}) {
+			parsedRoles = append(parsedRoles, role.(int))
+		}
+	}
+
+	parsedPermissions := []int{}
+
+	if userParams["permissions"] != nil {
+		for _, role := range userParams["permissions"].([]interface{}) {
+			parsedPermissions = append(parsedPermissions, role.(int))
+		}
+	}
+
 	password := ""
 
 	if userParams["password"] != nil {
@@ -124,11 +143,13 @@ func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 	}
 
 	user := &domain.User{
-		Name:      userParams["name"].(string),
-		Email:     userParams["email"].(string),
-		Password:  password,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Name:        userParams["name"].(string),
+		Email:       userParams["email"].(string),
+		Roles:       parsedRoles,
+		Permissions: parsedPermissions,
+		Password:    password,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
 	if err := validation.IsAValidSchema(params.Context, user); err != nil {
@@ -156,11 +177,29 @@ func updateUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 		return nil, err
 	}
 
+	parsedRoles := []int{}
+
+	if userParams["roles"] != nil {
+		for _, role := range userParams["roles"].([]interface{}) {
+			parsedRoles = append(parsedRoles, role.(int))
+		}
+	}
+
+	parsedPermissions := []int{}
+
+	if userParams["permissions"] != nil {
+		for _, role := range userParams["permissions"].([]interface{}) {
+			parsedPermissions = append(parsedPermissions, role.(int))
+		}
+	}
+
 	user := &domain.User{
-		ID:        id,
-		Name:      userParams["name"].(string),
-		Email:     userParams["email"].(string),
-		UpdatedAt: time.Now(),
+		ID:          id,
+		Name:        userParams["name"].(string),
+		Email:       userParams["email"].(string),
+		Roles:       parsedRoles,
+		Permissions: parsedPermissions,
+		UpdatedAt:   time.Now(),
 	}
 
 	if err := validation.IsAValidSchema(params.Context, user); err != nil {

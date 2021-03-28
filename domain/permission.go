@@ -18,17 +18,20 @@ type Permission struct {
 type PermissionUsecase interface {
 	Fetch(ctx context.Context) ([]*Permission, error)
 	GetByID(ctx context.Context, id int64) (*Permission, error)
-	Store(ctx context.Context, permission *Permission) error
-	Update(ctx context.Context, permission *Permission) error
+	Store(ctx context.Context, permission *Permission) (*Permission, error)
+	Update(ctx context.Context, permission *Permission) (*Permission, error)
 	Delete(ctx context.Context, id int64) error
+
+	GetPermissionsByRoleID(ctx context.Context, roleID int64) ([]*Permission, error)
+	GetPermissionsByUserID(ctx context.Context, userID int64) ([]*Permission, error)
 }
 
 // PermissionRepository represent the permission's repository contract.
 type PermissionRepository interface {
 	Fetch(ctx context.Context) ([]*Permission, error)
 	GetByID(ctx context.Context, id int64) (*Permission, error)
-	Store(ctx context.Context, permission *Permission) error
-	Update(ctx context.Context, permission *Permission) error
+	Store(ctx context.Context, permission *Permission) (*Permission, error)
+	Update(ctx context.Context, permission *Permission) (*Permission, error)
 	Delete(ctx context.Context, id int64) error
 
 	GetPermissionsByRoleID(ctx context.Context, roleID int64) ([]*Permission, error)

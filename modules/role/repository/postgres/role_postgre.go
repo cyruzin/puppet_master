@@ -10,12 +10,19 @@ import (
 )
 
 type postgreRepository struct {
-	Conn *sqlx.DB
+	Conn           *sqlx.DB
+	permissionRepo domain.PermissionRepository
 }
 
 // NewPostgreRoleRepository will create an object that represent the role.Repository interface.
-func NewPostgreRoleRepository(Conn *sqlx.DB) domain.RoleRepository {
-	return &postgreRepository{Conn}
+func NewPostgreRoleRepository(
+	Conn *sqlx.DB,
+	permissionRepo domain.PermissionRepository,
+) domain.RoleRepository {
+	return &postgreRepository{
+		Conn,
+		permissionRepo,
+	}
 }
 
 func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.Role, error) {
@@ -46,11 +53,11 @@ func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Role
 	return &role, nil
 }
 
-func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) error {
+func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) (*domain.Role, error) {
 	tx, err := p.Conn.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrStoreError
+		return nil, domain.ErrStoreError
 	}
 
 	defer func() {
@@ -69,10 +76,14 @@ func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) error 
 		updated_at
 		)
 		VALUES ($1, $2, $3, $4)
+		RETURNING id
 		`
 
-	_, err = tx.ExecContext(
+	var lastID int64
+
+	err = tx.GetContext(
 		ctx,
+		&lastID,
 		query,
 		role.Name,
 		role.Description,
@@ -81,17 +92,31 @@ func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) error 
 	)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrStoreError
+		return nil, domain.ErrStoreError
 	}
 
-	return nil
+	tx.Commit()
+
+	newRole, err := p.GetByID(ctx, lastID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	err = p.permissionRepo.GivePermissionToRole(ctx, role.Permissions, newRole.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	return newRole, nil
 }
 
-func (p *postgreRepository) Update(ctx context.Context, role *domain.Role) error {
+func (p *postgreRepository) Update(ctx context.Context, role *domain.Role) (*domain.Role, error) {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrUpdateError
 	}
 
 	defer func() {
@@ -121,20 +146,34 @@ func (p *postgreRepository) Update(ctx context.Context, role *domain.Role) error
 	)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrUpdateError
 	}
+
+	tx.Commit()
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrUpdateError
+		return nil, domain.ErrUpdateError
 	}
 
 	if rowsAffected == 0 {
-		return domain.ErrNotFound
+		return nil, domain.ErrNotFound
 	}
 
-	return nil
+	err = p.permissionRepo.SyncPermissionToRole(ctx, role.Permissions, role.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	newRole, err := p.GetByID(ctx, role.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	return newRole, nil
 }
 
 func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
@@ -227,12 +266,12 @@ func (p *postgreRepository) AssignRole(ctx context.Context, roles []int, userID 
 	}()
 
 	query := `
-	  INSERT INTO role_user ( 
-		 role_id,
-		 user_id
-		)
-		VALUES ($1, $2)
-		`
+	INSERT INTO role_user ( 
+		role_id,
+		user_id
+	)
+	VALUES ($1, $2)
+	`
 
 	for _, role := range roles {
 		_, err = tx.ExecContext(
@@ -267,11 +306,10 @@ func (p *postgreRepository) RemoveRole(ctx context.Context, roles []int, userID 
 
 	query := "DELETE FROM role_user WHERE user_id = $1"
 
-	for _, role := range roles {
+	for i := 0; i <= len(roles); i++ {
 		_, err = tx.ExecContext(
 			ctx,
 			query,
-			role,
 			userID,
 		)
 		if err != nil {
@@ -298,16 +336,24 @@ func (p *postgreRepository) SyncRole(ctx context.Context, roles []int, userID in
 		err = tx.Commit()
 	}()
 
-	err = p.RemoveRole(ctx, roles, userID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrSyncRole
-	}
+	if len(roles) > 0 {
+		err = p.RemoveRole(ctx, roles, userID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncRole
+		}
 
-	err = p.AssignRole(ctx, roles, userID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return domain.ErrSyncRole
+		err = p.AssignRole(ctx, roles, userID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncRole
+		}
+	} else {
+		err = p.RemoveRole(ctx, roles, userID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrSyncRole
+		}
 	}
 
 	return nil

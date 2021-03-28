@@ -47,56 +47,24 @@ func (u *userUseCase) GetByID(ctx context.Context, id int64) (*domain.User, erro
 	return user, nil
 }
 
-func (u *userUseCase) Store(ctx context.Context, user *domain.User) error {
-	err := u.userRepo.Store(ctx, user)
+func (u *userUseCase) Store(ctx context.Context, user *domain.User) (*domain.User, error) {
+	newUser, err := u.userRepo.Store(ctx, user)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return err
+		return nil, err
 	}
 
-	if len(user.Roles) > 0 {
-		err = u.roleRepo.AssignRole(ctx, user.Roles, user.ID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return err
-		}
-	}
-
-	if len(user.Permissions) > 0 {
-		err = u.permissionRepo.GivePermissionToUser(ctx, user.Permissions, user.ID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return err
-		}
-	}
-
-	return nil
+	return newUser, nil
 }
 
-func (u *userUseCase) Update(ctx context.Context, user *domain.User) error {
-	err := u.userRepo.Update(ctx, user)
+func (u *userUseCase) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
+	updatedUser, err := u.userRepo.Update(ctx, user)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return err
+		return nil, err
 	}
 
-	if len(user.Roles) > 0 {
-		err = u.roleRepo.SyncRole(ctx, user.Roles, user.ID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return err
-		}
-	}
-
-	if len(user.Permissions) > 0 {
-		err = u.permissionRepo.SyncPermissionToUser(ctx, user.Permissions, user.ID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return err
-		}
-	}
-
-	return nil
+	return updatedUser, nil
 }
 
 func (u *userUseCase) Delete(ctx context.Context, id int64) error {

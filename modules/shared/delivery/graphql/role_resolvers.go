@@ -1,7 +1,6 @@
 package gql
 
 import (
-	"errors"
 	"strconv"
 	"time"
 
@@ -13,9 +12,9 @@ import (
 
 // RolesListQueryResolver for a list of roles.
 func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Role{}, errors.New("insufficient permission")
+		return []*domain.Role{}, domain.ErrUnauthorized
 	}
 
 	role, err := r.roleUseCase.Fetch(params.Context)
@@ -28,9 +27,9 @@ func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interfa
 
 // RoleQueryResolver for a single role.
 func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Role{}, errors.New("insufficient permission")
+		return []*domain.Role{}, domain.ErrUnauthorized
 	}
 
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
@@ -50,9 +49,9 @@ func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{},
 
 // RoleCreateResolver creates a new role.
 func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Role{}, errors.New("insufficient permission")
+		return []*domain.Role{}, domain.ErrUnauthorized
 	}
 
 	role, err := storeRoleValidation(params)
@@ -60,18 +59,20 @@ func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}
 		return nil, err
 	}
 
-	if err := r.roleUseCase.Store(params.Context, role); err != nil {
+	role, err = r.roleUseCase.Store(params.Context, role)
+	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
-	return nil, nil
+
+	return role, nil
 }
 
 // RoleUpdateResolver updates the given role.
 func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Role{}, errors.New("insufficient permission")
+		return []*domain.Role{}, domain.ErrUnauthorized
 	}
 
 	role, err := updateRoleValidation(params)
@@ -79,18 +80,20 @@ func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}
 		return nil, err
 	}
 
-	if err := r.roleUseCase.Update(params.Context, role); err != nil {
+	role, err = r.roleUseCase.Update(params.Context, role)
+	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
-	return nil, nil
+
+	return role, nil
 }
 
 // RoleDeleteResolver deletes the given role.
 func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := checkPermission(params.Context)
+	allow := r.checkPermission(params.Context)
 	if !allow {
-		return []*domain.Role{}, errors.New("insufficient permission")
+		return []*domain.Role{}, domain.ErrUnauthorized
 	}
 
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
@@ -110,9 +113,18 @@ func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}
 func storeRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
 	roleParams := params.Args["Role"].(map[string]interface{})
 
+	parsedPermissions := []int{}
+
+	if roleParams["permissions"] != nil {
+		for _, permission := range roleParams["permissions"].([]interface{}) {
+			parsedPermissions = append(parsedPermissions, permission.(int))
+		}
+	}
+
 	role := &domain.Role{
 		Name:        roleParams["name"].(string),
 		Description: roleParams["description"].(string),
+		Permissions: parsedPermissions,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -134,10 +146,19 @@ func updateRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
 		return nil, err
 	}
 
+	parsedPermissions := []int{}
+
+	if roleParams["permissions"] != nil {
+		for _, permission := range roleParams["permissions"].([]interface{}) {
+			parsedPermissions = append(parsedPermissions, permission.(int))
+		}
+	}
+
 	role := &domain.Role{
 		ID:          id,
 		Name:        roleParams["name"].(string),
 		Description: roleParams["description"].(string),
+		Permissions: parsedPermissions,
 		UpdatedAt:   time.Now(),
 	}
 

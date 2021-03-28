@@ -7,6 +7,8 @@ var (
 	ErrInternalServerError = errors.New("internal server error")
 	// ErrNotFound will throw if the requested resource could not be found
 	ErrNotFound = errors.New("the resource you requested could not be found")
+	// ErrUnauthorized will throw if the user does not have sufficient permission
+	ErrUnauthorized = errors.New("unauthorized")
 
 	// ErrFetchError will throw if failed to fetch
 	ErrFetchError = errors.New("failed to fetch")
