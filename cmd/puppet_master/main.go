@@ -75,10 +75,10 @@ func main() {
 	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
 
 	rRepo := roleRepo.NewPostgreRoleRepository(dbConnection)
-	rCase := roleUseCase.NewRoleUsecase(rRepo)
+	rCase := roleUseCase.NewRoleUsecase(pRepo, rRepo)
 
 	uRepo := userRepo.NewPostgreUserRepository(dbConnection)
-	uCase := userUseCase.NewUserUsecase(uRepo)
+	uCase := userUseCase.NewUserUsecase(pRepo, rRepo, uRepo)
 
 	root := gql.NewRoot(aCase, pCase, rCase, uCase)
 

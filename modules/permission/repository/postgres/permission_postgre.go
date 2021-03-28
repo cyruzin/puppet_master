@@ -174,3 +174,263 @@ func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 	tx.Commit()
 	return nil
 }
+
+func (p *postgreRepository) GetPermissionsByRoleID(ctx context.Context, roleID int64) ([]*domain.Permission, error) {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrPermissionByID
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := "SELECT * FROM permissions WHERE id = $1"
+
+	permissions := []*domain.Permission{}
+
+	err = p.Conn.GetContext(ctx, &permissions, query, roleID)
+	if err != nil && err != sql.ErrNoRows {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrPermissionByID
+	}
+
+	return permissions, nil
+}
+
+func (p *postgreRepository) GivePermissionToRole(ctx context.Context, permissions []string, roleID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrAssignPermission
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := `
+	  INSERT INTO permission_role ( 
+		 permission_id,
+		 role_id
+		)
+		VALUES ($1, $2)
+		`
+
+	for _, permission := range permissions {
+		_, err = tx.ExecContext(
+			ctx,
+			query,
+			permission,
+			roleID,
+		)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrAssignPermission
+		}
+	}
+
+	return nil
+}
+
+func (p *postgreRepository) RemovePermissionToRole(ctx context.Context, permissions []string, roleID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrRemovePermission
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := "DELETE FROM permission_role WHERE role_id = $1"
+
+	for _, permission := range permissions {
+		_, err = tx.ExecContext(
+			ctx,
+			query,
+			permission,
+			roleID,
+		)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrRemovePermission
+		}
+	}
+
+	return nil
+}
+
+func (p *postgreRepository) SyncPermissionToRole(ctx context.Context, permissions []string, roleID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncPermission
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	err = p.RemovePermissionToRole(ctx, permissions, roleID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncPermission
+	}
+
+	err = p.GivePermissionToRole(ctx, permissions, roleID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncPermission
+	}
+
+	return nil
+}
+
+func (p *postgreRepository) GetPermissionsByUserID(ctx context.Context, userID int64) ([]*domain.Permission, error) {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrPermissionByID
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := "SELECT * FROM permissions WHERE id = $1"
+
+	permissions := []*domain.Permission{}
+
+	err = p.Conn.GetContext(ctx, &permissions, query, userID)
+	if err != nil && err != sql.ErrNoRows {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, domain.ErrPermissionByID
+	}
+
+	return permissions, nil
+}
+
+func (p *postgreRepository) GivePermissionToUser(ctx context.Context, permissions []string, userID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrAssignPermission
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := `
+	  INSERT INTO permission_user ( 
+		 permission_id,
+		 user_id
+		)
+		VALUES ($1, $2)
+		`
+
+	for _, permission := range permissions {
+		_, err = tx.ExecContext(
+			ctx,
+			query,
+			permission,
+			userID,
+		)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrAssignPermission
+		}
+	}
+
+	return nil
+}
+
+func (p *postgreRepository) RemovePermissionToUser(ctx context.Context, permissions []string, userID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrRemovePermission
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := "DELETE FROM permission_user WHERE user_id = $1"
+
+	for _, permission := range permissions {
+		_, err = tx.ExecContext(
+			ctx,
+			query,
+			permission,
+			userID,
+		)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrRemovePermission
+		}
+	}
+
+	return nil
+}
+
+func (p *postgreRepository) SyncPermissionToUser(ctx context.Context, permissions []string, userID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncPermission
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	err = p.RemovePermissionToUser(ctx, permissions, userID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncPermission
+	}
+
+	err = p.GivePermissionToUser(ctx, permissions, userID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncPermission
+	}
+
+	return nil
+}

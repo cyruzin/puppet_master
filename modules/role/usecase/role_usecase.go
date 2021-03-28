@@ -8,14 +8,19 @@ import (
 )
 
 type roleUseCase struct {
-	roleRepo domain.RoleRepository
+	permissionRepo domain.PermissionRepository
+	roleRepo       domain.RoleRepository
 }
 
 // NewRoleUsecase will create new an roleUsecase object representation
 // of domain.RoleUsecase interface.
-func NewRoleUsecase(role domain.RoleRepository) domain.RoleUsecase {
+func NewRoleUsecase(
+	permission domain.PermissionRepository,
+	role domain.RoleRepository,
+) domain.RoleUsecase {
 	return &roleUseCase{
-		roleRepo: role,
+		permissionRepo: permission,
+		roleRepo:       role,
 	}
 }
 
@@ -46,6 +51,14 @@ func (r *roleUseCase) Store(ctx context.Context, role *domain.Role) error {
 		return err
 	}
 
+	if len(role.Permissions) > 0 {
+		err = r.permissionRepo.GivePermissionToRole(ctx, role.Permissions, role.ID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -54,6 +67,14 @@ func (r *roleUseCase) Update(ctx context.Context, role *domain.Role) error {
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
+	}
+
+	if len(role.Permissions) > 0 {
+		err = r.permissionRepo.SyncPermissionToRole(ctx, role.Permissions, role.ID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return err
+		}
 	}
 
 	return nil

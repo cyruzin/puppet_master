@@ -21,10 +21,6 @@ type PermissionUsecase interface {
 	Store(ctx context.Context, permission *Permission) error
 	Update(ctx context.Context, permission *Permission) error
 	Delete(ctx context.Context, id int64) error
-
-	// GivePermissionTo(permission string, userID int64) error
-	// RemovePermissionTo(permission string, userID int64) error
-	// SyncPermission(permission string, userID int64) error
 }
 
 // PermissionRepository represent the permission's repository contract.
@@ -35,7 +31,13 @@ type PermissionRepository interface {
 	Update(ctx context.Context, permission *Permission) error
 	Delete(ctx context.Context, id int64) error
 
-	// GivePermissionTo(permission string, userID int64) error
-	// RemovePermissionTo(permission string, userID int64) error
-	// SyncPermission(permission string, userID int64) error
+	GetPermissionsByRoleID(ctx context.Context, roleID int64) ([]*Permission, error)
+	GivePermissionToRole(ctx context.Context, permissions []string, roleID int64) error
+	RemovePermissionToRole(ctx context.Context, permissions []string, roleID int64) error
+	SyncPermissionToRole(ctx context.Context, permissions []string, roleID int64) error
+
+	GetPermissionsByUserID(ctx context.Context, userID int64) ([]*Permission, error)
+	GivePermissionToUser(ctx context.Context, permissions []string, userID int64) error
+	RemovePermissionToUser(ctx context.Context, permissions []string, userID int64) error
+	SyncPermissionToUser(ctx context.Context, permissions []string, userID int64) error
 }

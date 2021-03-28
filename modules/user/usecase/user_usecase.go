@@ -8,14 +8,22 @@ import (
 )
 
 type userUseCase struct {
-	userRepo domain.UserRepository
+	permissionRepo domain.PermissionRepository
+	roleRepo       domain.RoleRepository
+	userRepo       domain.UserRepository
 }
 
 // NewUserUsecase will create new an articleUsecase object representation
 // of domain.UserUsecase interface.
-func NewUserUsecase(user domain.UserRepository) domain.UserUsecase {
+func NewUserUsecase(
+	permission domain.PermissionRepository,
+	role domain.RoleRepository,
+	user domain.UserRepository,
+) domain.UserUsecase {
 	return &userUseCase{
-		userRepo: user,
+		permissionRepo: permission,
+		roleRepo:       role,
+		userRepo:       user,
 	}
 }
 
@@ -46,6 +54,22 @@ func (u *userUseCase) Store(ctx context.Context, user *domain.User) error {
 		return err
 	}
 
+	if len(user.Roles) > 0 {
+		err = u.roleRepo.AssignRole(ctx, user.Roles, user.ID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return err
+		}
+	}
+
+	if len(user.Permissions) > 0 {
+		err = u.permissionRepo.GivePermissionToUser(ctx, user.Permissions, user.ID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -54,6 +78,22 @@ func (u *userUseCase) Update(ctx context.Context, user *domain.User) error {
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
+	}
+
+	if len(user.Roles) > 0 {
+		err = u.roleRepo.SyncRole(ctx, user.Roles, user.ID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return err
+		}
+	}
+
+	if len(user.Permissions) > 0 {
+		err = u.permissionRepo.SyncPermissionToUser(ctx, user.Permissions, user.ID)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return err
+		}
 	}
 
 	return nil

@@ -172,3 +172,105 @@ func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 
 	return nil
 }
+
+func (p *postgreRepository) AssignRole(ctx context.Context, roles []string, userID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrAssignRole
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := `
+	  INSERT INTO role_user ( 
+		 role_id,
+		 user_id
+		)
+		VALUES ($1, $2)
+		`
+
+	for _, role := range roles {
+		_, err = tx.ExecContext(
+			ctx,
+			query,
+			role,
+			userID,
+		)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrAssignRole
+		}
+	}
+
+	return nil
+}
+
+func (p *postgreRepository) RemoveRole(ctx context.Context, roles []string, userID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrRemoveRole
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	query := "DELETE FROM role_user WHERE user_id = $1"
+
+	for _, role := range roles {
+		_, err = tx.ExecContext(
+			ctx,
+			query,
+			role,
+			userID,
+		)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return domain.ErrRemoveRole
+		}
+	}
+
+	return nil
+}
+
+func (p *postgreRepository) SyncRole(ctx context.Context, roles []string, userID int64) error {
+	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncRole
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	err = p.RemoveRole(ctx, roles, userID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncRole
+	}
+
+	err = p.AssignRole(ctx, roles, userID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrSyncRole
+	}
+
+	return nil
+}

@@ -17,4 +17,18 @@ var (
 	ErrDeleteError = errors.New("failed to delete")
 	// ErrNotFound will throw if the requested resource could not be found
 	ErrNotFound = errors.New("the resource you requested could not be found")
+	// ErrAssignRole will throw if failed to assign role
+	ErrAssignRole = errors.New("failed to assign role")
+	// ErrRemoveRole will throw if failed to remove role
+	ErrRemoveRole = errors.New("failed to remove role")
+	// ErrSyncRole will throw if failed to sync role
+	ErrSyncRole = errors.New("failed to sync role")
+	// ErrPermissionByID will throw if failed to fetch permissions
+	ErrPermissionByID = errors.New("failed to fetch permissions")
+	// ErrAssignPermission will throw if failed to assign permission
+	ErrAssignPermission = errors.New("failed to assign permission")
+	// ErrRemovePermission will throw if failed to remove permission
+	ErrRemovePermission = errors.New("failed to remove permission")
+	// ErrSyncPermission will throw if failed to sync permission
+	ErrSyncPermission = errors.New("failed to sync permission")
 )
