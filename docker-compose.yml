@@ -21,8 +21,8 @@ services:
     container_name: puppet_master-redis
     hostname: puppet_master-redis
     volumes:
-      - .data/redis:/usr/local/etc/redis
-    command: redis-server --requirepass master
+      - .data/redis:/redis/data
+    command: redis-server --requirepass master --appendonly yes
     ports:
       - 6379:6379
 

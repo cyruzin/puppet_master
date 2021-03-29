@@ -17,8 +17,8 @@
   },
   "redis": {
     "address": "localhost:6379",
-    "db": "1",
-    "password": "master"
+    "password": "master",
+    "db": "1"
   },
   "jwt": {
     "issuer": "Puppet Master",

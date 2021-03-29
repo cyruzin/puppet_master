@@ -45,8 +45,8 @@ var (
 	ErrSetCache = errors.New("failed to set cache data")
 	// ErrGetCache will throw if failed to get cache data
 	ErrGetCache = errors.New("failed to get cache data")
-	// ErrCacheKey will throw if failed to find the cache key
-	ErrCacheKey = errors.New("failed to find the cache key")
+	// ErrCacheKeyNil will throw if failed to find the cache key
+	ErrCacheKeyNil = errors.New("failed to find the cache key")
 	// ErrCacheMarshalling will throw if failed to marshal the cache
 	ErrCacheMarshalling = errors.New("failed to marshal the cache")
 	// ErrCacheUnmarshalling will throw if failed to unmarshal the cache key

@@ -15,6 +15,7 @@ import (
 
 type authUseCase struct {
 	authRepo       domain.AuthRepository
+	cacheRepo      domain.CacheRepository
 	permissionRepo domain.PermissionRepository
 	roleRepo       domain.RoleRepository
 	userRepo       domain.UserRepository
@@ -24,12 +25,14 @@ type authUseCase struct {
 // of domain.AuthUsecase interface.
 func NewAuthUsecase(
 	auth domain.AuthRepository,
+	cache domain.CacheRepository,
 	permission domain.PermissionRepository,
 	role domain.RoleRepository,
 	user domain.UserRepository,
 ) domain.AuthUsecase {
 	return &authUseCase{
 		authRepo:       auth,
+		cacheRepo:      cache,
 		permissionRepo: permission,
 		roleRepo:       role,
 		userRepo:       user,
@@ -65,21 +68,28 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		}
 	}
 
-	token, err := a.GenerateToken(auth)
+	expiration := time.Now().Add(time.Hour * viper.GetDuration(`jwt.expiration`))
+
+	token, err := a.GenerateToken(auth, expiration)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return "", err
 	}
 
+	auth.Token = token
+	auth.Revoked = false
+
+	a.saveToken(ctx, auth, expiration)
+
 	return token, nil
 }
 
-func (a *authUseCase) GenerateToken(auth *domain.Auth) (string, error) {
+func (a *authUseCase) GenerateToken(auth *domain.Auth, expiration time.Time) (string, error) {
 	t := jwt.New()
 	t.Set(jwt.IssuerKey, viper.GetString(`jwt.issuer`))
 	t.Set(jwt.SubjectKey, viper.GetString(`jwt.subject`))
 	t.Set(jwt.AudienceKey, viper.GetString(`jwt.audience`))
-	t.Set(jwt.ExpirationKey, time.Now().Add(time.Hour*viper.GetDuration(`jwt.expiration`)).Unix())
+	t.Set(jwt.ExpirationKey, expiration.Unix())
 	t.Set(`user`, auth)
 
 	payload, err := jwt.Sign(t, jwa.HS256, []byte(viper.GetString(`jwt.secret`)))
@@ -90,3 +100,34 @@ func (a *authUseCase) GenerateToken(auth *domain.Auth) (string, error) {
 
 	return string(payload), nil
 }
+
+func (a *authUseCase) saveToken(ctx context.Context, auth *domain.Auth, expiration time.Time) error {
+	value, err := a.cacheRepo.Marshal(auth)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(domain.ErrCacheMarshalling.Error())
+		return domain.ErrCacheMarshalling
+	}
+
+	if err := a.cacheRepo.Set(ctx, auth.Email, value, time.Duration(expiration.Unix())); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+// func (a *authUseCase) getToken(ctx context.Context, key string, auth *domain.Auth) error {
+// 	value, err := a.cacheRepo.Get(ctx, key)
+// 	if err != nil {
+// 		log.Error().Stack().Err(err).Msg(err.Error())
+// 		return err
+// 	}
+
+// 	err = a.cacheRepo.Unmarshal([]byte(value), auth)
+// 	if err != nil {
+// 		log.Error().Stack().Err(err).Msg(domain.ErrCacheMarshalling.Error())
+// 		return domain.ErrCacheMarshalling
+// 	}
+
+// 	return nil
+// }

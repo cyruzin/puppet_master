@@ -74,7 +74,7 @@ func main() {
 
 	defer redisClient.Close()
 
-	_ = cacheRepo.NewRedisCacheRepository(redisClient)
+	cRepo := cacheRepo.NewRedisCacheRepository(redisClient)
 
 	pRepo := permissionRepo.NewPostgrePermissionRepository(postgreDB)
 	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
@@ -86,7 +86,7 @@ func main() {
 	uCase := userUseCase.NewUserUsecase(pRepo, rRepo, uRepo)
 
 	aRepo := authRepo.NewPostgreAuthRepository(postgreDB)
-	aCase := authUseCase.NewAuthUsecase(aRepo, pRepo, rRepo, uRepo)
+	aCase := authUseCase.NewAuthUsecase(aRepo, cRepo, pRepo, rRepo, uRepo)
 
 	root := gql.NewRoot(aCase, pCase, rCase, uCase)
 

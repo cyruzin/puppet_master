@@ -38,8 +38,8 @@ func (r *cacheRepository) Get(ctx context.Context, key string) (string, error) {
 	}
 
 	if err == redis.Nil {
-		log.Error().Err(err).Stack().Msg(domain.ErrCacheKey.Error())
-		return "", domain.ErrCacheKey
+		log.Error().Err(err).Stack().Msg(domain.ErrCacheKeyNil.Error())
+		return "", domain.ErrCacheKeyNil
 	}
 
 	return val, nil
