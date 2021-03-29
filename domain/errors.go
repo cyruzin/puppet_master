@@ -9,6 +9,8 @@ var (
 	ErrNotFound = errors.New("the resource you requested could not be found")
 	// ErrUnauthorized will throw if the user does not have sufficient permission
 	ErrUnauthorized = errors.New("unauthorized")
+	// ErrBadRequest will throw if the user send a bad payload
+	ErrBadRequest = errors.New("bad request")
 
 	// ErrFetchError will throw if failed to fetch
 	ErrFetchError = errors.New("failed to fetch")
@@ -38,4 +40,15 @@ var (
 	ErrRemovePermission = errors.New("failed to remove permission")
 	// ErrSyncPermission will throw if failed to sync permission
 	ErrSyncPermission = errors.New("failed to sync permission")
+
+	// ErrSetCache will throw if failed to set cache data
+	ErrSetCache = errors.New("failed to set cache data")
+	// ErrGetCache will throw if failed to get cache data
+	ErrGetCache = errors.New("failed to get cache data")
+	// ErrCacheKey will throw if failed to find the cache key
+	ErrCacheKey = errors.New("failed to find the cache key")
+	// ErrCacheMarshalling will throw if failed to marshal the cache
+	ErrCacheMarshalling = errors.New("failed to marshal the cache")
+	// ErrCacheUnmarshalling will throw if failed to unmarshal the cache key
+	ErrCacheUnmarshalling = errors.New("failed to unmarshal the cache key")
 )

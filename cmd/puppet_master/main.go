@@ -9,6 +9,7 @@ import (
 
 	authRepo "github.com/cyruzin/puppet_master/modules/auth/repository/postgres"
 	authUseCase "github.com/cyruzin/puppet_master/modules/auth/usecase"
+	cacheRepo "github.com/cyruzin/puppet_master/modules/cache/repository/redis"
 	permissionRepo "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
 	permissionUseCase "github.com/cyruzin/puppet_master/modules/permission/usecase"
 	roleRepo "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
@@ -21,6 +22,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
+	"github.com/go-redis/redis/v8"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
@@ -60,24 +62,30 @@ func main() {
 		viper.GetString(`database.name`),
 	)
 
-	dbConnection := databaseConnection(
+	postgreDB := postgreConnection(
 		ctx,
 		viper.GetString(`database.driver`),
 		dataSourceName,
 	)
 
-	defer dbConnection.Close()
+	defer postgreDB.Close()
 
-	pRepo := permissionRepo.NewPostgrePermissionRepository(dbConnection)
+	redisClient := redisConnection(ctx)
+
+	defer redisClient.Close()
+
+	_ = cacheRepo.NewRedisCacheRepository(redisClient)
+
+	pRepo := permissionRepo.NewPostgrePermissionRepository(postgreDB)
 	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
 
-	rRepo := roleRepo.NewPostgreRoleRepository(dbConnection, pRepo)
+	rRepo := roleRepo.NewPostgreRoleRepository(postgreDB, pRepo)
 	rCase := roleUseCase.NewRoleUsecase(pRepo, rRepo)
 
-	uRepo := userRepo.NewPostgreUserRepository(dbConnection, pRepo, rRepo)
+	uRepo := userRepo.NewPostgreUserRepository(postgreDB, pRepo, rRepo)
 	uCase := userUseCase.NewUserUsecase(pRepo, rRepo, uRepo)
 
-	aRepo := authRepo.NewPostgreAuthRepository(dbConnection)
+	aRepo := authRepo.NewPostgreAuthRepository(postgreDB)
 	aCase := authUseCase.NewAuthUsecase(aRepo, pRepo, rRepo, uRepo)
 
 	root := gql.NewRoot(aCase, pCase, rCase, uCase)
@@ -157,7 +165,7 @@ func main() {
 	<-idleConnsClosed
 }
 
-func databaseConnection(
+func postgreConnection(
 	ctx context.Context,
 	driverName string,
 	dataSourceName string,
@@ -179,5 +187,28 @@ func databaseConnection(
 			Msg("could not ping the database")
 	}
 
+	log.Info().Msg("postgre connected")
+
 	return db
+}
+
+// Redis connection.
+func redisConnection(ctx context.Context) *redis.Client {
+	client := redis.NewClient(&redis.Options{
+		Addr:     viper.GetString(`redis.address`),
+		Password: viper.GetString(`redis.password`),
+		DB:       viper.GetInt(`redis.db`),
+	})
+
+	_, err := client.WithContext(ctx).Ping(ctx).Result()
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Stack().
+			Msg("could not connect to redis")
+	}
+
+	log.Info().Msg("redis connected")
+
+	return client
 }

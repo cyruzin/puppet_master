@@ -1,7 +1,6 @@
 version: "3.9"
 
-services: 
-
+services:
   database:
     image: postgres:13.2-alpine
     container_name: puppet_master-postgres
@@ -9,14 +8,24 @@ services:
     volumes:
       - .data:/var/lib/postgresql/data
       - ./db:/docker-entrypoint-initdb.d/
-    ports: 
+    ports:
       - 5432:5432
     environment:
       - PGDATA=/var/lib/postgresql/data/pgdata
       - POSTGRES_DB=puppet_master
       - POSTGRES_USER=puppet
       - POSTGRES_PASSWORD=master
-  
+
+  redis:
+    image: redis:6.2.1-alpine
+    container_name: puppet_master-redis
+    hostname: puppet_master-redis
+    volumes:
+      - .data/redis:/usr/local/etc/redis
+    command: redis-server --requirepass master
+    ports:
+      - 6379:6379
+
   adminer:
     image: adminer
     ports:

@@ -69,42 +69,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		userInfo := token.PrivateClaims()["user"].(map[string]interface{})
-
-		userID := int64(userInfo["user_id"].(float64))
-		roles := []string{}
-		userPermissions := []string{}
-		rolePermissions := []string{}
-		roleIDs := []int64{}
-
-		for _, role := range userInfo["roles"].([]interface{}) {
-			roles = append(roles, role.(string))
-		}
-
-		for _, roleID := range userInfo["role_ids"].([]interface{}) {
-			roleIDs = append(roleIDs, int64(roleID.(float64)))
-		}
-
-		for _, permission := range userInfo["role_permissions"].([]interface{}) {
-			rolePermissions = append(rolePermissions, permission.(string))
-		}
-
-		for _, permission := range userInfo["user_permissions"].([]interface{}) {
-			userPermissions = append(userPermissions, permission.(string))
-		}
-
-		auth := &domain.Auth{
-			UserID:          userID,
-			RoleIDs:         roleIDs,
-			Name:            userInfo["name"].(string),
-			Email:           userInfo["email"].(string),
-			Roles:           roles,
-			RolePermissions: userPermissions,
-			UserPermissions: rolePermissions,
+		userInfo, ok := token.PrivateClaims()["user"].(map[string]interface{})
+		if !ok {
+			util.DecodeError(w, r, errors.New("could not get the private claims"))
+			return
 		}
 
 		// Passing permissions through context
-		ctx := context.WithValue(r.Context(), domain.ContextKeyID, auth)
+		ctx := context.WithValue(r.Context(), domain.ContextKeyID, userInfo)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

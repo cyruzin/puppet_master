@@ -47,12 +47,6 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		return "", errors.New("authentication failed")
 	}
 
-	userPermissions, err := a.permissionRepo.GetPermissionsByUserID(ctx, user.ID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return "", err
-	}
-
 	roles, err := a.roleRepo.GetRolesByUserID(ctx, user.ID)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -63,27 +57,6 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		UserID: user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
-	}
-
-	for _, role := range roles {
-		rolesPermissions, err := a.permissionRepo.GetPermissionsByRoleID(ctx, role.ID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return "", err
-		}
-
-		if len(rolesPermissions) >= 1 {
-			for _, permission := range rolesPermissions {
-				auth.RolePermissions = append(auth.RolePermissions, permission.Name)
-				auth.RoleIDs = append(auth.RoleIDs, permission.ID)
-			}
-		}
-	}
-
-	if len(userPermissions) >= 1 {
-		for _, permission := range userPermissions {
-			auth.UserPermissions = append(auth.UserPermissions, permission.Name)
-		}
 	}
 
 	if len(roles) >= 1 {

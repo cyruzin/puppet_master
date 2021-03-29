@@ -12,11 +12,6 @@ import (
 
 // RolesListQueryResolver for a list of roles.
 func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := r.checkPermission(params.Context)
-	if !allow {
-		return []*domain.Role{}, domain.ErrUnauthorized
-	}
-
 	role, err := r.roleUseCase.Fetch(params.Context)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -27,33 +22,29 @@ func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interfa
 
 // RoleQueryResolver for a single role.
 func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := r.checkPermission(params.Context)
-	if !allow {
-		return []*domain.Role{}, domain.ErrUnauthorized
+	id, ok := params.Args["ID"].(string)
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
 	}
 
-	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
+	parsedID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
 
-	role, err := r.roleUseCase.GetByID(params.Context, id)
+	role, err := r.roleUseCase.GetByID(params.Context, parsedID)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
+
 	return role, nil
-
 }
 
 // RoleCreateResolver creates a new role.
 func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := r.checkPermission(params.Context)
-	if !allow {
-		return []*domain.Role{}, domain.ErrUnauthorized
-	}
-
 	role, err := storeRoleValidation(params)
 	if err != nil {
 		return nil, err
@@ -70,11 +61,6 @@ func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}
 
 // RoleUpdateResolver updates the given role.
 func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := r.checkPermission(params.Context)
-	if !allow {
-		return []*domain.Role{}, domain.ErrUnauthorized
-	}
-
 	role, err := updateRoleValidation(params)
 	if err != nil {
 		return nil, err
@@ -91,11 +77,6 @@ func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // RoleDeleteResolver deletes the given role.
 func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	allow := r.checkPermission(params.Context)
-	if !allow {
-		return []*domain.Role{}, domain.ErrUnauthorized
-	}
-
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -111,7 +92,11 @@ func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}
 }
 
 func storeRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
-	roleParams := params.Args["Role"].(map[string]interface{})
+	roleParams, ok := params.Args["Role"].(map[string]interface{})
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
 
 	parsedPermissions := []int{}
 
@@ -138,7 +123,11 @@ func storeRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
 }
 
 func updateRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
-	roleParams := params.Args["Role"].(map[string]interface{})
+	roleParams, ok := params.Args["Role"].(map[string]interface{})
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
 
 	id, err := strconv.ParseInt(roleParams["id"].(string), 10, 64)
 	if err != nil {

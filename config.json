@@ -15,6 +15,11 @@
     "pass": "master",
     "name": "puppet_master"
   },
+  "redis": {
+    "address": "localhost:6379",
+    "db": "1",
+    "password": "master"
+  },
   "jwt": {
     "issuer": "Puppet Master",
     "subject": "https: //github.com/cyruzin/puppet_master",

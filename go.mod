@@ -8,6 +8,7 @@ require (
 	github.com/go-chi/cors v1.1.1
 	github.com/go-chi/render v1.0.1
 	github.com/go-playground/validator/v10 v10.4.1
+	github.com/go-redis/redis/v8 v8.8.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/graphql-go/graphql v0.7.9
 	github.com/graphql-go/handler v0.2.3
@@ -21,7 +22,6 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0
-	github.com/zhashkevych/go-sqlxmock v1.5.2-0.20201023121933-f973d0041cfc
 	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670
 	golang.org/x/sys v0.0.0-20210319071255-635bc2c9138d // indirect
 	golang.org/x/text v0.3.5 // indirect

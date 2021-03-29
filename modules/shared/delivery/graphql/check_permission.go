@@ -1,34 +1,42 @@
 package gql
 
-import (
-	"context"
+// func (r *Resolver) checkPermission(ctx context.Context) bool {
+// 	auth := ctx.Value(domain.ContextKeyID).(*domain.Auth)
 
-	"github.com/cyruzin/puppet_master/domain"
-)
+// userID := int64(userInfo["user_id"].(float64))
+// roles := []string{}
 
-func (r *Resolver) checkPermission(ctx context.Context) bool {
-	auth := ctx.Value(domain.ContextKeyID).(*domain.Auth)
+// for _, role := range userInfo["roles"].([]interface{}) {
+// 	roles = append(roles, role.(string))
+// }
 
-	if len(auth.UserPermissions) == 0 {
-		return false
-	}
+// auth := &domain.Auth{
+// 	UserID: userID,
+// 	Name:   userInfo["name"].(string),
+// 	Email:  userInfo["email"].(string),
+// 	Roles:  roles,
+// }
 
-	userPermissions, err := r.permissionUseCase.GetPermissionsByUserID(ctx, auth.UserID)
-	if err != nil {
-		return false
-	}
+// 	if len(auth.UserPermissions) == 0 {
+// 		return false
+// 	}
 
-	for _, role := range auth.Roles {
-		if role == "admin" {
-			return true
-		}
-	}
+// 	userPermissions, err := r.permissionUseCase.GetPermissionsByUserID(ctx, auth.UserID)
+// 	if err != nil {
+// 		return false
+// 	}
 
-	for index, userPermission := range userPermissions {
-		if auth.UserPermissions[index] != userPermission.Name {
-			return false
-		}
-	}
+// 	for _, role := range auth.Roles {
+// 		if role == "admin" {
+// 			return true
+// 		}
+// 	}
 
-	return true
-}
+// 	for index, userPermission := range userPermissions {
+// 		if auth.UserPermissions[index] != userPermission.Name {
+// 			return false
+// 		}
+// 	}
+
+// 	return true
+// }
