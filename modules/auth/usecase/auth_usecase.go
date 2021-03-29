@@ -7,6 +7,7 @@ import (
 
 	"github.com/cyruzin/puppet_master/domain"
 	"github.com/cyruzin/puppet_master/pkg/crypto"
+	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rs/zerolog/log"
@@ -68,6 +69,15 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		}
 	}
 
+	tokenUUID, err := uuid.NewUUID()
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return "", err
+	}
+
+	auth.TokenUUID = tokenUUID
+	auth.Revoked = false
+
 	expiration := time.Now().Add(time.Hour * viper.GetDuration(`jwt.expiration`))
 
 	token, err := a.GenerateToken(auth, expiration)
@@ -77,7 +87,6 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 	}
 
 	auth.Token = token
-	auth.Revoked = false
 
 	a.saveToken(ctx, auth, expiration)
 

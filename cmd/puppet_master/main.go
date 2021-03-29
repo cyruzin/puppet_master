@@ -8,8 +8,8 @@ import (
 	"os/signal"
 
 	authRepo "github.com/cyruzin/puppet_master/modules/auth/repository/postgres"
+	authCacheRepo "github.com/cyruzin/puppet_master/modules/auth/repository/redis"
 	authUseCase "github.com/cyruzin/puppet_master/modules/auth/usecase"
-	cacheRepo "github.com/cyruzin/puppet_master/modules/cache/repository/redis"
 	permissionRepo "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
 	permissionUseCase "github.com/cyruzin/puppet_master/modules/permission/usecase"
 	roleRepo "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
@@ -74,7 +74,7 @@ func main() {
 
 	defer redisClient.Close()
 
-	cRepo := cacheRepo.NewRedisCacheRepository(redisClient)
+	aCRepo := authCacheRepo.NewRedisCacheRepository(redisClient)
 
 	pRepo := permissionRepo.NewPostgrePermissionRepository(postgreDB)
 	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
@@ -86,7 +86,7 @@ func main() {
 	uCase := userUseCase.NewUserUsecase(pRepo, rRepo, uRepo)
 
 	aRepo := authRepo.NewPostgreAuthRepository(postgreDB)
-	aCase := authUseCase.NewAuthUsecase(aRepo, cRepo, pRepo, rRepo, uRepo)
+	aCase := authUseCase.NewAuthUsecase(aRepo, aCRepo, pRepo, rRepo, uRepo)
 
 	root := gql.NewRoot(aCase, pCase, rCase, uCase)
 

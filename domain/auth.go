@@ -3,6 +3,8 @@ package domain
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type contextKey int
@@ -11,13 +13,14 @@ const ContextKeyID contextKey = iota
 
 // Auth represent the auth's model.
 type Auth struct {
-	UserID   int64    `json:"user_id,omitempty"`
-	Name     string   `json:"name,omitempty"`
-	Email    string   `json:"email" validate:"required,email"`
-	Password string   `json:"password,omitempty" validate:"required,gte=8"`
-	Roles    []string `json:"roles"`
-	Token    string   `json:"token"`
-	Revoked  bool     `json:"revoked"`
+	UserID    int64     `json:"user_id,omitempty"`
+	Name      string    `json:"name,omitempty"`
+	Email     string    `json:"email" validate:"required,email"`
+	Password  string    `json:"password,omitempty" validate:"required,gte=8"`
+	Roles     []string  `json:"roles"`
+	TokenUUID uuid.UUID `json:"token_uuid"`
+	Token     string    `json:"token,omitempty"`
+	Revoked   bool      `json:"revoked"`
 }
 
 // AuthUsecase represent the auth's usecases.

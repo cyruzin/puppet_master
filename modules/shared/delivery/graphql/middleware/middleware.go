@@ -41,7 +41,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
-			log.Info().Msg("public route, no check is needed")
 			ctx := context.WithValue(r.Context(), domain.ContextKeyID, "")
 			next.ServeHTTP(w, r.WithContext(ctx))
 			return
