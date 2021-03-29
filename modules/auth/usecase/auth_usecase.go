@@ -102,13 +102,7 @@ func (a *authUseCase) GenerateToken(auth *domain.Auth, expiration time.Time) (st
 }
 
 func (a *authUseCase) saveToken(ctx context.Context, auth *domain.Auth, expiration time.Time) error {
-	value, err := a.cacheRepo.Marshal(auth)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(domain.ErrCacheMarshalling.Error())
-		return domain.ErrCacheMarshalling
-	}
-
-	if err := a.cacheRepo.Set(ctx, auth.Email, value, time.Duration(expiration.Unix())); err != nil {
+	if err := a.cacheRepo.Set(ctx, auth.Email, auth, time.Duration(expiration.Unix())); err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
@@ -117,16 +111,10 @@ func (a *authUseCase) saveToken(ctx context.Context, auth *domain.Auth, expirati
 }
 
 // func (a *authUseCase) getToken(ctx context.Context, key string, auth *domain.Auth) error {
-// 	value, err := a.cacheRepo.Get(ctx, key)
+// 	err := a.cacheRepo.Get(ctx, key, auth)
 // 	if err != nil {
 // 		log.Error().Stack().Err(err).Msg(err.Error())
 // 		return err
-// 	}
-
-// 	err = a.cacheRepo.Unmarshal([]byte(value), auth)
-// 	if err != nil {
-// 		log.Error().Stack().Err(err).Msg(domain.ErrCacheMarshalling.Error())
-// 		return domain.ErrCacheMarshalling
 // 	}
 
 // 	return nil

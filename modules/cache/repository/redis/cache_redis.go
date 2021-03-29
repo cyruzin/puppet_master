@@ -21,7 +21,13 @@ func NewRedisCacheRepository(Conn *redis.Client) domain.CacheRepository {
 }
 
 func (r *cacheRepository) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	err := r.Conn.Set(ctx, key, value, expiration).Err()
+	marshalledValue, err := r.marshal(value)
+	if err != nil {
+		log.Error().Err(err).Stack().Msg(err.Error())
+		return err
+	}
+
+	err = r.Conn.Set(ctx, key, marshalledValue, expiration).Err()
 	if err != nil {
 		log.Error().Err(err).Stack().Msg(domain.ErrSetCache.Error())
 		return domain.ErrSetCache
@@ -30,22 +36,27 @@ func (r *cacheRepository) Set(ctx context.Context, key string, value interface{}
 	return nil
 }
 
-func (r *cacheRepository) Get(ctx context.Context, key string) (string, error) {
-	val, err := r.Conn.Get(ctx, key).Result()
+func (r *cacheRepository) Get(ctx context.Context, key string, destination interface{}) error {
+	value, err := r.Conn.Get(ctx, key).Result()
 	if err != nil {
 		log.Error().Err(err).Stack().Msg(domain.ErrGetCache.Error())
-		return "", domain.ErrGetCache
+		return domain.ErrGetCache
 	}
 
 	if err == redis.Nil {
 		log.Error().Err(err).Stack().Msg(domain.ErrCacheKeyNil.Error())
-		return "", domain.ErrCacheKeyNil
+		return domain.ErrCacheKeyNil
 	}
 
-	return val, nil
+	if err := r.unmarshal([]byte(value), destination); err != nil {
+		log.Error().Err(err).Stack().Msg(err.Error())
+		return err
+	}
+
+	return nil
 }
 
-func (r *cacheRepository) Marshal(data interface{}) ([]byte, error) {
+func (r *cacheRepository) marshal(data interface{}) ([]byte, error) {
 	value, err := json.Marshal(data)
 	if err != nil {
 		log.Error().Err(err).Stack().Msg(domain.ErrCacheMarshalling.Error())
@@ -55,7 +66,7 @@ func (r *cacheRepository) Marshal(data interface{}) ([]byte, error) {
 	return value, nil
 }
 
-func (r *cacheRepository) Unmarshal(data []byte, destination interface{}) error {
+func (r *cacheRepository) unmarshal(data []byte, destination interface{}) error {
 	err := json.Unmarshal(data, &destination)
 	if err != nil {
 		log.Error().Err(err).Stack().Msg(domain.ErrCacheUnmarshalling.Error())
