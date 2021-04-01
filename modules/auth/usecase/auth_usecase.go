@@ -39,21 +39,21 @@ func NewAuthUsecase(
 	}
 }
 
-func (a *authUseCase) Authenticate(ctx context.Context, email, password string) (string, error) {
+func (a *authUseCase) Authenticate(ctx context.Context, email, password string) (*domain.AuthToken, error) {
 	user, err := a.authRepo.Authenticate(ctx, email)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return "", err
+		return nil, err
 	}
 
 	if match := crypto.CheckPasswordHash(password, user.Password); !match {
-		return "", errors.New("authentication failed")
+		return nil, errors.New("authentication failed")
 	}
 
 	roles, err := a.roleRepo.GetRolesByUserID(ctx, user.ID)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return "", err
+		return nil, err
 	}
 
 	auth := &domain.Auth{
@@ -65,31 +65,53 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 	if len(roles) >= 1 {
 		for _, role := range roles {
 			auth.Roles = append(auth.Roles, role.Name)
+			user.Roles = append(user.Roles, int(role.ID))
 		}
 	}
 
-	expiration := time.Now().Add(time.Hour * viper.GetDuration(`jwt.expiration`))
+	expiration := time.Now().Add(time.Minute * viper.GetDuration(`jwt.token_expiration`))
 
-	token, err := a.GenerateToken(auth, expiration)
+	token, err := a.GenerateToken("user", auth, expiration)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
-		return "", err
+		return nil, err
 	}
 
 	auth.Token = token
 
-	a.saveToken(ctx, auth, expiration)
+	refreshToken, err := a.refreshToken(
+		"user",
+		user.ID,
+		time.Now().AddDate(0, 0, viper.GetInt(`jwt.refresh_token_expiration`)),
+	)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
 
-	return token, nil
+	payload := &domain.AuthToken{
+		Token:        token,
+		RefreshToken: refreshToken,
+	}
+
+	return payload, nil
 }
 
-func (a *authUseCase) GenerateToken(auth *domain.Auth, expiration time.Time) (string, error) {
+func (a *authUseCase) GenerateToken(
+	claimKey string,
+	claimValue interface{},
+	expiration time.Time,
+) (string, error) {
+	if claimKey == "" || claimValue == nil {
+		return "", errors.New("token claim is empty")
+	}
+
 	t := jwt.New()
 	t.Set(jwt.IssuerKey, viper.GetString(`jwt.issuer`))
 	t.Set(jwt.SubjectKey, viper.GetString(`jwt.subject`))
 	t.Set(jwt.AudienceKey, viper.GetString(`jwt.audience`))
 	t.Set(jwt.ExpirationKey, expiration.Unix())
-	t.Set(`user`, auth)
+	t.Set(claimKey, claimValue)
 
 	payload, err := jwt.Sign(t, jwa.HS256, []byte(viper.GetString(`jwt.secret`)))
 	if err != nil {
@@ -100,15 +122,38 @@ func (a *authUseCase) GenerateToken(auth *domain.Auth, expiration time.Time) (st
 	return string(payload), nil
 }
 
-func (a *authUseCase) saveToken(ctx context.Context, auth *domain.Auth, expiration time.Time) error {
-	if err := a.cacheRepo.Set(ctx, auth.Email, auth, time.Duration(expiration.Unix())); err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return err
+func (a *authUseCase) refreshToken(
+	claimKey string,
+	claimValue interface{},
+	expiration time.Time,
+) (string, error) {
+	if claimKey == "" || claimValue == nil {
+		return "", errors.New("refresh token claim is empty")
 	}
 
-	return nil
+	t := jwt.New()
+	t.Set(jwt.ExpirationKey, expiration.Unix())
+	t.Set(claimKey, claimValue)
+
+	payload, err := jwt.Sign(t, jwa.HS256, []byte(viper.GetString(`jwt.secret`)))
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return "", err
+	}
+
+	return string(payload), nil
 }
 
-// func (a *authUseCase) Authorize(ctx context.Context) bool {
-// 	return true
+// func (a *authUseCase) saveToken(
+// 	ctx context.Context,
+// 	key string,
+// 	value interface{},
+// 	expiration time.Time,
+// ) error {
+// 	if err := a.cacheRepo.Set(ctx, key, value, time.Duration(expiration.Unix())); err != nil {
+// 		log.Error().Stack().Err(err).Msg(err.Error())
+// 		return err
+// 	}
+
+// 	return nil
 // }

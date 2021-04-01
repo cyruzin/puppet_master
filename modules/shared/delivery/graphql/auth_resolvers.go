@@ -14,13 +14,13 @@ func (r *Resolver) AuthQueryResolver(params graphql.ResolveParams) (interface{},
 		return nil, err
 	}
 
-	token, err := r.authUseCase.Authenticate(params.Context, user.Email, user.Password)
+	payload, err := r.authUseCase.Authenticate(params.Context, user.Email, user.Password)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
 		return nil, err
 	}
 
-	auth := &domain.Auth{Token: token}
+	auth := &domain.AuthToken{Token: payload.Token, RefreshToken: payload.RefreshToken}
 
 	return auth, nil
 }

@@ -24,7 +24,8 @@
     "issuer": "Puppet Master",
     "subject": "https: //github.com/cyruzin/puppet_master",
     "audience": "Auth Services",
-    "expiration": "2",
+    "token_expiration": "5",
+    "refresh_token_expiration": "1",
     "secret": "secret"
   }
 }

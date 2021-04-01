@@ -10,6 +10,9 @@ var authType = graphql.NewObject(graphql.ObjectConfig{
 		"token": &graphql.Field{
 			Type: graphql.String,
 		},
+		"refresh_token": &graphql.Field{
+			Type: graphql.String,
+		},
 	},
 })
 

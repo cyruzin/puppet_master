@@ -19,10 +19,16 @@ type Auth struct {
 	Token    string   `json:"token,omitempty"`
 }
 
+// AuthToken represent the token and refresh_token payload.
+type AuthToken struct {
+	Token        string `json:"token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+}
+
 // AuthUsecase represent the auth's usecases.
 type AuthUsecase interface {
-	Authenticate(ctx context.Context, email, password string) (string, error)
-	GenerateToken(auth *Auth, expiration time.Time) (string, error)
+	Authenticate(ctx context.Context, email, password string) (*AuthToken, error)
+	GenerateToken(claimKey string, claimValue interface{}, expiration time.Time) (string, error)
 	// ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (bool, error)
 	// ResetPassword(ctx context.Context, email string) (bool, error)
 }

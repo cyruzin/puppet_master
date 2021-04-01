@@ -70,11 +70,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		userInfo, ok := token.PrivateClaims()["user"].(map[string]interface{})
 		if !ok {
-			util.DecodeError(w, r, errors.New("could not get the private claims"))
+			// If user params does not exists it's a refresh token
+			userInfo := token.PrivateClaims()["email"].(string)
+
+			ctx := context.WithValue(r.Context(), domain.ContextKeyID, userInfo)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}
 
-		// Passing permissions through context
 		ctx := context.WithValue(r.Context(), domain.ContextKeyID, userInfo)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
