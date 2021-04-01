@@ -7,16 +7,16 @@ import (
 	"os"
 	"os/signal"
 
-	authRepo "github.com/cyruzin/puppet_master/modules/auth/repository/postgres"
-	authCacheRepo "github.com/cyruzin/puppet_master/modules/auth/repository/redis"
+	authRepository "github.com/cyruzin/puppet_master/modules/auth/repository/postgres"
+	authCacheRepository "github.com/cyruzin/puppet_master/modules/auth/repository/redis"
 	authUseCase "github.com/cyruzin/puppet_master/modules/auth/usecase"
-	permissionRepo "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
+	permissionRepository "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
 	permissionUseCase "github.com/cyruzin/puppet_master/modules/permission/usecase"
-	roleRepo "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
+	roleRepository "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
 	roleUseCase "github.com/cyruzin/puppet_master/modules/role/usecase"
 	gql "github.com/cyruzin/puppet_master/modules/shared/delivery/graphql"
 	"github.com/cyruzin/puppet_master/modules/shared/delivery/graphql/middleware"
-	userRepo "github.com/cyruzin/puppet_master/modules/user/repository/postgres"
+	userRepository "github.com/cyruzin/puppet_master/modules/user/repository/postgres"
 	userUseCase "github.com/cyruzin/puppet_master/modules/user/usecase"
 	"github.com/cyruzin/puppet_master/pkg/util"
 	"github.com/go-chi/chi"
@@ -44,15 +44,16 @@ func init() {
 
 	if viper.GetBool(`debug`) {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-		log.Debug().Msg("running in DEVELOPMENT mode")
+		log.Debug().Msg("running in development mode")
 	} else {
-		log.Info().Msg("running in PRODUCTION mode")
+		log.Info().Msg("running in production mode")
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	}
 }
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	dataSourceName := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -74,21 +75,27 @@ func main() {
 
 	defer redisClient.Close()
 
-	aCRepo := authCacheRepo.NewRedisCacheRepository(redisClient)
+	authCacheRepository := authCacheRepository.NewRedisCacheRepository(redisClient)
 
-	pRepo := permissionRepo.NewPostgrePermissionRepository(postgreDB)
-	pCase := permissionUseCase.NewPermissionUsecase(pRepo)
+	permissionRepository := permissionRepository.NewPostgrePermissionRepository(postgreDB)
+	permissionUseCase := permissionUseCase.NewPermissionUsecase(permissionRepository)
 
-	rRepo := roleRepo.NewPostgreRoleRepository(postgreDB, pRepo)
-	rCase := roleUseCase.NewRoleUsecase(pRepo, rRepo)
+	roleRepository := roleRepository.NewPostgreRoleRepository(postgreDB, permissionRepository)
+	roleUseCase := roleUseCase.NewRoleUsecase(permissionRepository, roleRepository)
 
-	uRepo := userRepo.NewPostgreUserRepository(postgreDB, pRepo, rRepo)
-	uCase := userUseCase.NewUserUsecase(pRepo, rRepo, uRepo)
+	userRepository := userRepository.NewPostgreUserRepository(postgreDB, permissionRepository, roleRepository)
+	userUseCase := userUseCase.NewUserUsecase(permissionRepository, roleRepository, userRepository)
 
-	aRepo := authRepo.NewPostgreAuthRepository(postgreDB)
-	aCase := authUseCase.NewAuthUsecase(aRepo, aCRepo, pRepo, rRepo, uRepo)
+	authRepository := authRepository.NewPostgreAuthRepository(postgreDB)
+	authUseCase := authUseCase.NewAuthUsecase(
+		authRepository,
+		authCacheRepository,
+		permissionRepository,
+		roleRepository,
+		userRepository,
+	)
 
-	root := gql.NewRoot(aCase, pCase, rCase, uCase)
+	root := gql.NewRoot(authUseCase, permissionUseCase, roleUseCase, userUseCase)
 
 	var schema, _ = graphql.NewSchema(graphql.SchemaConfig{
 		Query:    root.Query,
@@ -116,7 +123,6 @@ func main() {
 			"Accept",
 			"Authorization",
 			"Content-Type",
-			"X-CSRF-Token",
 		},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
