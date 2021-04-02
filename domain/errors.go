@@ -11,6 +11,8 @@ var (
 	ErrUnauthorized = errors.New("unauthorized")
 	// ErrBadRequest will throw if the user send a bad payload
 	ErrBadRequest = errors.New("bad request")
+	// ErrIDParam will throw if the user do not provide a valid id
+	ErrIDParam = errors.New("invalid id format")
 
 	// ErrFetchError will throw if failed to fetch
 	ErrFetchError = errors.New("failed to fetch")

@@ -10,10 +10,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// AuthError is used for handling the API errors.
-type AuthError struct {
+// APIError is used for handling the API errors.
+type APIError struct {
 	Error  string `json:"error"`
 	Status int    `json:"status,omitempty"`
+}
+
+// APIMessage is used for handling the API success messages.
+type APIMessage struct {
+	Message string `json:"message"`
+	Status  int    `json:"status,omitempty"`
 }
 
 // EncodeJSON encodes the payload and returns a JSON response.
@@ -23,8 +29,8 @@ func EncodeJSON(w http.ResponseWriter, httpStatus int, payload interface{}) {
 }
 
 // DecodeJSON decodes the JSON payload.
-func DecodeJSON(r io.ReadCloser, payload interface{}) error {
-	if err := json.NewDecoder(r).Decode(&payload); err != nil {
+func DecodeJSON(r io.Reader, payload interface{}) error {
+	if err := json.NewDecoder(r).Decode(payload); err != nil {
 		return err
 	}
 
@@ -53,7 +59,7 @@ func EncodeError(w http.ResponseWriter, r *http.Request, err error, code int) {
 
 	w.WriteHeader(code)
 
-	e := &AuthError{Error: err.Error(), Status: code}
+	e := &APIError{Error: err.Error(), Status: code}
 
 	if err := json.NewEncoder(w).Encode(e); err != nil {
 		return
@@ -67,7 +73,7 @@ func EncodeErrorGraphql(w http.ResponseWriter, r *http.Request, err error) {
 		Stack().
 		Msg(err.Error())
 
-	e := &AuthError{Error: err.Error()}
+	e := &APIError{Error: err.Error()}
 
 	if err := json.NewEncoder(w).Encode(e); err != nil {
 		return

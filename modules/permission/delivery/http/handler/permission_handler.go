@@ -25,8 +25,8 @@ func NewArticleHandler(c *chi.Mux, p domain.PermissionUsecase) {
 	c.Route("/permission", func(r chi.Router) {
 		r.Get("/", handler.Fetch)
 		r.Get("/{id}", handler.GetByID)
-		r.Put("/{id}", handler.Update)
 		r.Post("/", handler.Store)
+		r.Put("/{id}", handler.Update)
 		r.Delete("/{id}", handler.Delete)
 	})
 }
@@ -44,7 +44,7 @@ func (p *PermissionHandler) Fetch(w http.ResponseWriter, r *http.Request) {
 func (p *PermissionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := rest.ParseID(chi.URLParam(r, "id"))
 	if err != nil {
-		rest.EncodeError(w, r, err, http.StatusInternalServerError)
+		rest.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (p *PermissionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *PermissionHandler) Store(w http.ResponseWriter, r *http.Request) {
-	var payload *domain.Permission
+	payload := &domain.Permission{}
 
 	if err := rest.DecodeJSON(r.Body, payload); err != nil {
 		rest.EncodeError(w, r, err, http.StatusBadRequest)
@@ -87,11 +87,11 @@ func (p *PermissionHandler) Store(w http.ResponseWriter, r *http.Request) {
 func (p *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := rest.ParseID(chi.URLParam(r, "id"))
 	if err != nil {
-		rest.EncodeError(w, r, err, http.StatusInternalServerError)
+		rest.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
 		return
 	}
 
-	var payload *domain.Permission
+	payload := &domain.Permission{}
 
 	if err := rest.DecodeJSON(r.Body, payload); err != nil {
 		rest.EncodeError(w, r, err, http.StatusBadRequest)
@@ -120,7 +120,7 @@ func (p *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (p *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := rest.ParseID(chi.URLParam(r, "id"))
 	if err != nil {
-		rest.EncodeError(w, r, err, http.StatusInternalServerError)
+		rest.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
 		return
 	}
 
@@ -129,5 +129,5 @@ func (p *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.EncodeJSON(w, http.StatusOK, "permission deleted")
+	rest.EncodeJSON(w, http.StatusOK, &rest.APIMessage{Message: "permission deleted", Status: http.StatusOK})
 }
