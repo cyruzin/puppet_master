@@ -78,13 +78,3 @@ func (p *permissionUseCase) GetPermissionsByRoleID(ctx context.Context, roleID i
 
 	return permissions, nil
 }
-
-func (p *permissionUseCase) GetPermissionsByUserID(ctx context.Context, userID int64) ([]*domain.Permission, error) {
-	permissions, err := p.permissionRepo.GetPermissionsByUserID(ctx, userID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return nil, err
-	}
-
-	return permissions, nil
-}

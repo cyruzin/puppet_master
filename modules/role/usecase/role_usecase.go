@@ -74,12 +74,12 @@ func (r *roleUseCase) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *roleUseCase) GetRolesByUserID(ctx context.Context, userID int64) ([]*domain.Role, error) {
-	roles, err := r.roleRepo.GetRolesByUserID(ctx, userID)
+func (r *roleUseCase) GetRoleByUserID(ctx context.Context, userID int64) (*domain.Role, error) {
+	role, err := r.roleRepo.GetRoleByUserID(ctx, userID)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
 
-	return roles, nil
+	return role, nil
 }

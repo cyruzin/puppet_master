@@ -79,6 +79,11 @@ func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // UserDeleteResolver deletes the given user.
 func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "delete user"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -100,22 +105,6 @@ func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 		return nil, domain.ErrBadRequest
 	}
 
-	parsedRoles := []int{}
-
-	if userParams["roles"] != nil {
-		for _, role := range userParams["roles"].([]interface{}) {
-			parsedRoles = append(parsedRoles, role.(int))
-		}
-	}
-
-	parsedPermissions := []int{}
-
-	if userParams["permissions"] != nil {
-		for _, role := range userParams["permissions"].([]interface{}) {
-			parsedPermissions = append(parsedPermissions, role.(int))
-		}
-	}
-
 	password := ""
 
 	if userParams["password"] != nil {
@@ -129,13 +118,12 @@ func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 	}
 
 	user := &domain.User{
-		Name:        userParams["name"].(string),
-		Email:       userParams["email"].(string),
-		Roles:       parsedRoles,
-		Permissions: parsedPermissions,
-		Password:    password,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		Name:      userParams["name"].(string),
+		Email:     userParams["email"].(string),
+		Role:      userParams["role"].(int),
+		Password:  password,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	if err := validation.IsAValidSchema(params.Context, user); err != nil {
@@ -167,29 +155,12 @@ func updateUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 		return nil, err
 	}
 
-	parsedRoles := []int{}
-
-	if userParams["roles"] != nil {
-		for _, role := range userParams["roles"].([]interface{}) {
-			parsedRoles = append(parsedRoles, role.(int))
-		}
-	}
-
-	parsedPermissions := []int{}
-
-	if userParams["permissions"] != nil {
-		for _, role := range userParams["permissions"].([]interface{}) {
-			parsedPermissions = append(parsedPermissions, role.(int))
-		}
-	}
-
 	user := &domain.User{
-		ID:          id,
-		Name:        userParams["name"].(string),
-		Email:       userParams["email"].(string),
-		Roles:       parsedRoles,
-		Permissions: parsedPermissions,
-		UpdatedAt:   time.Now(),
+		ID:        id,
+		Name:      userParams["name"].(string),
+		Email:     userParams["email"].(string),
+		Role:      userParams["role"].(int),
+		UpdatedAt: time.Now(),
 	}
 
 	if err := validation.IsAValidSchema(params.Context, user); err != nil {

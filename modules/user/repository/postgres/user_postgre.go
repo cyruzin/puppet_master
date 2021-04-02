@@ -108,16 +108,8 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) (*doma
 		return nil, domain.ErrStoreError
 	}
 
-	if len(user.Roles) > 0 {
-		err = p.roleRepo.AssignRole(ctx, user.Roles, lastID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return nil, err
-		}
-	}
-
-	if len(user.Permissions) > 0 {
-		err = p.permissionRepo.GivePermissionToUser(ctx, user.Permissions, lastID)
+	if user.Role > 0 {
+		err = p.roleRepo.AssignRole(ctx, user.Role, lastID)
 		if err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return nil, err
@@ -147,16 +139,14 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) (*dom
 		SET 
 		name = $1, 
 		email = $2, 
-		password = $3,  
-		updated_at = $4
-		WHERE id = $5
+		updated_at = $3
+		WHERE id = $4
 	`
 	result, err := tx.ExecContext(
 		ctx,
 		query,
 		user.Name,
 		user.Email,
-		user.Password,
 		user.UpdatedAt,
 		user.ID,
 	)
@@ -183,13 +173,7 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) (*dom
 		return nil, domain.ErrStoreError
 	}
 
-	err = p.roleRepo.SyncRole(ctx, user.Roles, updatedUser.ID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return nil, err
-	}
-
-	err = p.permissionRepo.SyncPermissionToUser(ctx, user.Permissions, updatedUser.ID)
+	err = p.roleRepo.SyncRole(ctx, user.Role, updatedUser.ID)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err

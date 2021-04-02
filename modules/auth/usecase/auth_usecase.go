@@ -50,7 +50,7 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		return nil, errors.New("authentication failed")
 	}
 
-	roles, err := a.roleRepo.GetRolesByUserID(ctx, user.ID)
+	role, err := a.roleRepo.GetRoleByUserID(ctx, user.ID)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
@@ -60,15 +60,10 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		UserID: user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
+		Role:   role.Name,
 	}
 
-	if len(roles) >= 1 {
-		for _, role := range roles {
-			auth.Roles = append(auth.Roles, role.Name)
-		}
-	}
-
-	expiration := time.Now().Add(time.Minute * viper.GetDuration(`jwt.token_expiration`))
+	expiration := time.Now().Add(time.Hour * viper.GetDuration(`jwt.token_expiration`))
 
 	token, err := a.GenerateToken("user", auth, expiration)
 	if err != nil {
@@ -91,6 +86,28 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 	payload := &domain.AuthToken{
 		Token:        token,
 		RefreshToken: refreshToken,
+	}
+
+	userCache := &domain.UserCache{}
+
+	if role != nil {
+		userCache.ID = user.ID
+		userCache.Role = role.Name
+
+		permissions, err := a.permissionRepo.GetPermissionsByRoleName(ctx, role.Name)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return nil, err
+		}
+
+		for _, permission := range permissions {
+			userCache.Permissions = append(userCache.Permissions, permission.Name)
+		}
+	}
+
+	if err := a.saveToken(ctx, user.Email, userCache, expiration); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
 	}
 
 	return payload, nil
@@ -143,16 +160,25 @@ func (a *authUseCase) refreshToken(
 	return string(payload), nil
 }
 
-// func (a *authUseCase) saveToken(
-// 	ctx context.Context,
-// 	key string,
-// 	value interface{},
-// 	expiration time.Time,
-// ) error {
-// 	if err := a.cacheRepo.Set(ctx, key, value, time.Duration(expiration.Unix())); err != nil {
-// 		log.Error().Stack().Err(err).Msg(err.Error())
-// 		return err
-// 	}
+func (a *authUseCase) saveToken(
+	ctx context.Context,
+	key string,
+	value interface{},
+	expiration time.Time,
+) error {
+	if err := a.cacheRepo.Set(ctx, key, value, time.Duration(expiration.Unix())); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return err
+	}
 
-// 	return nil
-// }
+	return nil
+}
+
+func (a *authUseCase) GetCache(ctx context.Context, key string, destination interface{}) error {
+	if err := a.cacheRepo.Get(ctx, key, destination); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return err
+	}
+
+	return nil
+}

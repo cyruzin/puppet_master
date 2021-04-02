@@ -11,12 +11,12 @@ const ContextKeyID contextKey = iota
 
 // Auth represent the auth's model.
 type Auth struct {
-	UserID   int64    `json:"user_id,omitempty"`
-	Name     string   `json:"name,omitempty"`
-	Email    string   `json:"email" validate:"required,email"`
-	Password string   `json:"password,omitempty" validate:"required,gte=8"`
-	Roles    []string `json:"roles"`
-	Token    string   `json:"token,omitempty"`
+	UserID   int64  `json:"user_id,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password,omitempty" validate:"required,gte=8"`
+	Role     string `json:"role"`
+	Token    string `json:"token,omitempty"`
 }
 
 // AuthToken represent the token and refresh_token payload.
@@ -31,6 +31,7 @@ type AuthUsecase interface {
 	GenerateToken(claimKey string, claimValue interface{}, expiration time.Time) (string, error)
 	// ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (bool, error)
 	// ResetPassword(ctx context.Context, email string) (bool, error)
+	GetCache(ctx context.Context, key string, destination interface{}) error
 }
 
 // AuthRepository represent the auth's repository contract.

@@ -70,12 +70,7 @@ func TokenMiddleware(next http.Handler) http.Handler {
 
 		userInfo, ok := token.PrivateClaims()["user"].(map[string]interface{})
 		if !ok {
-			// If user params does not exists it's a refresh token
-			userInfo := token.PrivateClaims()["email"].(string)
-
-			ctx := context.WithValue(r.Context(), domain.ContextKeyID, userInfo)
-
-			next.ServeHTTP(w, r.WithContext(ctx))
+			rest.EncodeErrorGraphql(w, r, errors.New("failed to retrieve private claims"))
 			return
 		}
 

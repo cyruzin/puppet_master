@@ -10,7 +10,8 @@ import (
 	authRepository "github.com/cyruzin/puppet_master/modules/auth/repository/postgres"
 	authCacheRepository "github.com/cyruzin/puppet_master/modules/auth/repository/redis"
 	authUseCase "github.com/cyruzin/puppet_master/modules/auth/usecase"
-	permissionHttpDelivery "github.com/cyruzin/puppet_master/modules/permission/delivery/http/handler"
+
+	// permissionHttpDelivery "github.com/cyruzin/puppet_master/modules/permission/delivery/http/handler"
 	permissionRepository "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
 	permissionUseCase "github.com/cyruzin/puppet_master/modules/permission/usecase"
 	roleRepository "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
@@ -134,14 +135,14 @@ func main() {
 		cors.Handler,
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.LoggerMiddleware,
-		// middleware.TokenMiddleware,
+		middleware.TokenMiddleware,
 	)
 
 	// Graphql
 	router.Handle("/graphql", graphqlHandler)
 
 	// Rest
-	permissionHttpDelivery.NewArticleHandler(router, permissionUseCase)
+	// permissionHttpDelivery.NewArticleHandler(router, permissionUseCase)
 
 	srv := &http.Server{
 		Addr:              ":" + viper.GetString(`server.port`),
@@ -208,7 +209,7 @@ func redisConnection(ctx context.Context) *redis.Client {
 	client := redis.NewClient(&redis.Options{
 		Addr:     viper.GetString(`redis.address`),
 		Password: viper.GetString(`redis.password`),
-		DB:       viper.GetInt(`redis.db`),
+		DB:       0,
 	})
 
 	_, err := client.WithContext(ctx).Ping(ctx).Result()

@@ -212,7 +212,7 @@ func (p *postgreRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (p *postgreRepository) GetRolesByUserID(ctx context.Context, userID int64) ([]*domain.Role, error) {
+func (p *postgreRepository) GetRoleByUserID(ctx context.Context, userID int64) (*domain.Role, error) {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -239,18 +239,18 @@ func (p *postgreRepository) GetRolesByUserID(ctx context.Context, userID int64) 
 					 WHERE u.id = $1
 					 GROUP BY r.id`
 
-	roles := []*domain.Role{}
+	role := &domain.Role{}
 
-	err = p.Conn.SelectContext(ctx, &roles, query, userID)
+	err = p.Conn.GetContext(ctx, role, query, userID)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrRoleByID
 	}
 
-	return roles, nil
+	return role, nil
 }
 
-func (p *postgreRepository) AssignRole(ctx context.Context, roles []int, userID int64) error {
+func (p *postgreRepository) AssignRole(ctx context.Context, role int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -273,23 +273,21 @@ func (p *postgreRepository) AssignRole(ctx context.Context, roles []int, userID 
 	VALUES ($1, $2)
 	`
 
-	for _, role := range roles {
-		_, err = tx.ExecContext(
-			ctx,
-			query,
-			role,
-			userID,
-		)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return domain.ErrAssignRole
-		}
+	_, err = tx.ExecContext(
+		ctx,
+		query,
+		role,
+		userID,
+	)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrAssignRole
 	}
 
 	return nil
 }
 
-func (p *postgreRepository) RemoveRole(ctx context.Context, roles []int, userID int64) error {
+func (p *postgreRepository) RemoveRole(ctx context.Context, role int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -306,22 +304,20 @@ func (p *postgreRepository) RemoveRole(ctx context.Context, roles []int, userID 
 
 	query := "DELETE FROM role_user WHERE user_id = $1"
 
-	for i := 0; i <= len(roles); i++ {
-		_, err = tx.ExecContext(
-			ctx,
-			query,
-			userID,
-		)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return domain.ErrRemoveRole
-		}
+	_, err = tx.ExecContext(
+		ctx,
+		query,
+		userID,
+	)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrRemoveRole
 	}
 
 	return nil
 }
 
-func (p *postgreRepository) SyncRole(ctx context.Context, roles []int, userID int64) error {
+func (p *postgreRepository) SyncRole(ctx context.Context, role int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -336,20 +332,20 @@ func (p *postgreRepository) SyncRole(ctx context.Context, roles []int, userID in
 		err = tx.Commit()
 	}()
 
-	if len(roles) > 0 {
-		err = p.RemoveRole(ctx, roles, userID)
+	if role > 0 {
+		err = p.RemoveRole(ctx, role, userID)
 		if err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncRole
 		}
 
-		err = p.AssignRole(ctx, roles, userID)
+		err = p.AssignRole(ctx, role, userID)
 		if err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncRole
 		}
 	} else {
-		err = p.RemoveRole(ctx, roles, userID)
+		err = p.RemoveRole(ctx, role, userID)
 		if err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncRole
