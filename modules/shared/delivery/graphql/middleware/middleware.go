@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cyruzin/puppet_master/domain"
-	"github.com/cyruzin/puppet_master/pkg/util"
+	"github.com/cyruzin/puppet_master/pkg/rest"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rs/zerolog/log"
@@ -34,9 +34,9 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// AuthMiddleware checks if the request contains Bearer Token on the
+// TokenMiddleware checks if the request contains Bearer Token on the
 // headers and if it is valid.
-func AuthMiddleware(next http.Handler) http.Handler {
+func TokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 
@@ -48,7 +48,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// Checking if the header contains Bearer string and if the token exists.
 		if !strings.Contains(authHeader, "Bearer") || len(strings.Split(authHeader, "Bearer ")) == 1 {
-			util.DecodeError(w, r, errors.New("malformed token"))
+			rest.EncodeErrorGraphql(w, r, errors.New("malformed token"))
 			return
 		}
 
@@ -58,13 +58,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// Parsing the token to verify its authenticity.
 		token, err := jwt.ParseString(jwtString, jwt.WithVerify(jwa.HS256, []byte(viper.GetString(`jwt.secret`))))
 		if err != nil {
-			util.DecodeError(w, r, err)
+			rest.EncodeErrorGraphql(w, r, err)
 			return
 		}
 
 		// Validating the content.
 		if err := jwt.Validate(token); err != nil {
-			util.DecodeError(w, r, errors.New("invalid token"))
+			rest.EncodeErrorGraphql(w, r, errors.New("invalid token"))
 			return
 		}
 

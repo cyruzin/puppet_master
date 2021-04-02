@@ -4,8 +4,8 @@ go 1.16
 
 require (
 	github.com/cockroachdb/apd v1.1.0 // indirect
-	github.com/go-chi/chi v1.5.4
-	github.com/go-chi/cors v1.1.1
+	github.com/go-chi/chi/v5 v5.0.2
+	github.com/go-chi/cors v1.2.0
 	github.com/go-chi/render v1.0.1
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-redis/redis/v8 v8.8.0

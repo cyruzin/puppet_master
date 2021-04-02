@@ -65,7 +65,6 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 	if len(roles) >= 1 {
 		for _, role := range roles {
 			auth.Roles = append(auth.Roles, role.Name)
-			user.Roles = append(user.Roles, int(role.ID))
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 	authRepository "github.com/cyruzin/puppet_master/modules/auth/repository/postgres"
 	authCacheRepository "github.com/cyruzin/puppet_master/modules/auth/repository/redis"
 	authUseCase "github.com/cyruzin/puppet_master/modules/auth/usecase"
+	permissionHttpDelivery "github.com/cyruzin/puppet_master/modules/permission/delivery/http/handler"
 	permissionRepository "github.com/cyruzin/puppet_master/modules/permission/repository/postgres"
 	permissionUseCase "github.com/cyruzin/puppet_master/modules/permission/usecase"
 	roleRepository "github.com/cyruzin/puppet_master/modules/role/repository/postgres"
@@ -19,7 +20,7 @@ import (
 	userRepository "github.com/cyruzin/puppet_master/modules/user/repository/postgres"
 	userUseCase "github.com/cyruzin/puppet_master/modules/user/usecase"
 	"github.com/cyruzin/puppet_master/pkg/util"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"github.com/go-redis/redis/v8"
@@ -108,7 +109,7 @@ func main() {
 		GraphiQL: true,
 	})
 
-	chiHandler := chi.NewRouter()
+	router := chi.NewRouter()
 
 	cors := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
@@ -129,14 +130,18 @@ func main() {
 		MaxAge:           300,
 	})
 
-	chiHandler.Use(
+	router.Use(
 		cors.Handler,
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.LoggerMiddleware,
-		middleware.AuthMiddleware,
+		// middleware.TokenMiddleware,
 	)
 
-	chiHandler.Handle("/graphql", graphqlHandler)
+	// Graphql
+	router.Handle("/graphql", graphqlHandler)
+
+	// Rest
+	permissionHttpDelivery.NewArticleHandler(router, permissionUseCase)
 
 	srv := &http.Server{
 		Addr:              ":" + viper.GetString(`server.port`),
@@ -144,7 +149,7 @@ func main() {
 		ReadHeaderTimeout: viper.GetDuration(`server.read_header_timeout`),
 		WriteTimeout:      viper.GetDuration(`server.write_timeout`),
 		IdleTimeout:       viper.GetDuration(`server.idle_timeout`),
-		Handler:           chiHandler,
+		Handler:           router,
 	}
 
 	idleConnsClosed := make(chan struct{})
