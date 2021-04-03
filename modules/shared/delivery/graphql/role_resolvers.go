@@ -12,6 +12,11 @@ import (
 
 // RolesListQueryResolver for a list of roles.
 func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "view role"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	role, err := r.roleUseCase.Fetch(params.Context)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -22,6 +27,11 @@ func (r *Resolver) RolesListQueryResolver(params graphql.ResolveParams) (interfa
 
 // RoleQueryResolver for a single role.
 func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "view role"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	id, ok := params.Args["ID"].(string)
 	if !ok {
 		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
@@ -45,6 +55,11 @@ func (r *Resolver) RoleQueryResolver(params graphql.ResolveParams) (interface{},
 
 // RoleCreateResolver creates a new role.
 func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "create role"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	role, err := storeRoleValidation(params)
 	if err != nil {
 		return nil, err
@@ -61,6 +76,11 @@ func (r *Resolver) RoleCreateResolver(params graphql.ResolveParams) (interface{}
 
 // RoleUpdateResolver updates the given role.
 func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "edit role"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	role, err := updateRoleValidation(params)
 	if err != nil {
 		return nil, err
@@ -77,6 +97,11 @@ func (r *Resolver) RoleUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // RoleDeleteResolver deletes the given role.
 func (r *Resolver) RoleDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "delete role"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())

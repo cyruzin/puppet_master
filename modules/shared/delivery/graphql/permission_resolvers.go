@@ -12,6 +12,11 @@ import (
 
 // PermissionsListQueryResolver for a list of permissions.
 func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "view permission"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	permission, err := r.permissionUseCase.Fetch(params.Context)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())
@@ -22,6 +27,11 @@ func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (i
 
 // PermissionQueryResolver for a single permission.
 func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "view permission"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	id, ok := params.Args["ID"].(string)
 	if !ok {
 		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
@@ -44,6 +54,11 @@ func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interf
 
 // PermissionCreateResolver creates a new permission.
 func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "create permission"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	permission, err := storePermissionValidation(params)
 	if err != nil {
 		return nil, err
@@ -60,6 +75,11 @@ func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (inter
 
 // PermissionUpdateResolver updates the given permission.
 func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "edit permission"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	permission, err := updatePermissionValidation(params)
 	if err != nil {
 		return nil, err
@@ -76,6 +96,11 @@ func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (inter
 
 // PermissionDeleteResolver deletes the given permission.
 func (r *Resolver) PermissionDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.checkPermissions(params.Context, "delete permission"); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
 	id, err := strconv.ParseInt(params.Args["ID"].(string), 10, 64)
 	if err != nil {
 		log.Error().Stack().Msg(err.Error())

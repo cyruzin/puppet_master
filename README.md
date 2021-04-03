@@ -1,6 +1,8 @@
 # Puppet Master
 
-Simple Authentication and Authorization app in Go.
+Authentication and authorization app with GraphQL to use as a basis for your project.
+
+It needs improvements, I know there is a lot that can be improved.
 
 ## Status
 
