@@ -63,9 +63,10 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		Role:   role.Name,
 	}
 
-	expiration := time.Now().Add(time.Hour * viper.GetDuration(`jwt.token_expiration`))
+	expiration := time.Duration(time.Hour * viper.GetDuration(`jwt.token_expiration`))
+	tokenExpiration := time.Now().Add(expiration)
 
-	token, err := a.GenerateToken("user", auth, expiration)
+	token, err := a.GenerateToken("user", auth, tokenExpiration)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
@@ -164,9 +165,9 @@ func (a *authUseCase) saveToken(
 	ctx context.Context,
 	key string,
 	value interface{},
-	expiration time.Time,
+	expiration time.Duration,
 ) error {
-	if err := a.cacheRepo.Set(ctx, key, value, time.Duration(expiration.Unix())); err != nil {
+	if err := a.cacheRepo.Set(ctx, key, value, expiration); err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}

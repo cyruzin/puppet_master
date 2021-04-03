@@ -37,7 +37,7 @@ import (
 )
 
 func init() {
-	viper.SetConfigFile(util.PathBuilder("./config.json"))
+	viper.SetConfigFile(util.PathBuilder("/config.json"))
 	if err := viper.ReadInConfig(); err != nil {
 		panic(err)
 	}
