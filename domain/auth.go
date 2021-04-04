@@ -28,10 +28,10 @@ type AuthToken struct {
 // AuthUsecase represent the auth's usecases.
 type AuthUsecase interface {
 	Authenticate(ctx context.Context, email, password string) (*AuthToken, error)
+	Authorize(ctx context.Context, permission string, role []string) bool
 	GenerateToken(claimKey string, claimValue interface{}, expiration time.Time) (string, error)
 	// ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (bool, error)
 	// ResetPassword(ctx context.Context, email string) (bool, error)
-	GetCache(ctx context.Context, key string, destination interface{}) error
 }
 
 // AuthRepository represent the auth's repository contract.

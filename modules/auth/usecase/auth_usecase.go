@@ -114,6 +114,35 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 	return payload, nil
 }
 
+func (a *authUseCase) Authorize(ctx context.Context, permission string, roles []string) bool {
+	user := ctx.Value(domain.ContextKeyID).(map[string]interface{})
+
+	userCache := &domain.UserCache{}
+
+	if err := a.cacheRepo.Get(ctx, user["email"].(string), userCache); err != nil {
+		log.Error().Stack().Msg(err.Error())
+		return false
+	}
+
+	if userCache.Role == "Admin" {
+		return true
+	}
+
+	for _, currentRole := range roles {
+		if currentRole == userCache.Role {
+			return true
+		}
+	}
+
+	for _, currentPermission := range userCache.Permissions {
+		if currentPermission == permission {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (a *authUseCase) GenerateToken(
 	claimKey string,
 	claimValue interface{},
@@ -168,15 +197,6 @@ func (a *authUseCase) saveToken(
 	expiration time.Duration,
 ) error {
 	if err := a.cacheRepo.Set(ctx, key, value, expiration); err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return err
-	}
-
-	return nil
-}
-
-func (a *authUseCase) GetCache(ctx context.Context, key string, destination interface{}) error {
-	if err := a.cacheRepo.Get(ctx, key, destination); err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return err
 	}
