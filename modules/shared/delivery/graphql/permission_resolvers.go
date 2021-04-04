@@ -12,7 +12,7 @@ import (
 
 // PermissionsListQueryResolver for a list of permissions.
 func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "view permission"); !allow {
+	if allow := r.checkPermissions(params.Context, "view permission", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}
@@ -27,7 +27,7 @@ func (r *Resolver) PermissionsListQueryResolver(params graphql.ResolveParams) (i
 
 // PermissionQueryResolver for a single permission.
 func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "view permission"); !allow {
+	if allow := r.checkPermissions(params.Context, "view permission", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}
@@ -54,7 +54,7 @@ func (r *Resolver) PermissionQueryResolver(params graphql.ResolveParams) (interf
 
 // PermissionCreateResolver creates a new permission.
 func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "create permission"); !allow {
+	if allow := r.checkPermissions(params.Context, "create permission", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}
@@ -75,7 +75,7 @@ func (r *Resolver) PermissionCreateResolver(params graphql.ResolveParams) (inter
 
 // PermissionUpdateResolver updates the given permission.
 func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "edit permission"); !allow {
+	if allow := r.checkPermissions(params.Context, "edit permission", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}
@@ -96,7 +96,7 @@ func (r *Resolver) PermissionUpdateResolver(params graphql.ResolveParams) (inter
 
 // PermissionDeleteResolver deletes the given permission.
 func (r *Resolver) PermissionDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "delete permission"); !allow {
+	if allow := r.checkPermissions(params.Context, "delete permission", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}

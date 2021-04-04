@@ -13,7 +13,7 @@ import (
 
 // UsersListQueryResolver for a list of users.
 func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "view user"); !allow {
+	if allow := r.checkPermissions(params.Context, "view user", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}
@@ -29,7 +29,7 @@ func (r *Resolver) UsersListQueryResolver(params graphql.ResolveParams) (interfa
 
 // UserQueryResolver for a single user.
 func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "view user"); !allow {
+	if allow := r.checkPermissions(params.Context, "view user", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}
@@ -57,7 +57,7 @@ func (r *Resolver) UserQueryResolver(params graphql.ResolveParams) (interface{},
 
 // UserCreateResolver creates a new user.
 func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "create user"); !allow {
+	if allow := r.checkPermissions(params.Context, "create user", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}
@@ -78,7 +78,7 @@ func (r *Resolver) UserCreateResolver(params graphql.ResolveParams) (interface{}
 
 // UserUpdateResolver updates the given user.
 func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "delete user"); !allow {
+	if allow := r.checkPermissions(params.Context, "delete user", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}
@@ -99,7 +99,7 @@ func (r *Resolver) UserUpdateResolver(params graphql.ResolveParams) (interface{}
 
 // UserDeleteResolver deletes the given user.
 func (r *Resolver) UserDeleteResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.checkPermissions(params.Context, "edit user"); !allow {
+	if allow := r.checkPermissions(params.Context, "edit user", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
 		return nil, domain.ErrUnauthorized
 	}

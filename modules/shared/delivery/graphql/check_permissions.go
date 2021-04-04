@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (r *Resolver) checkPermissions(ctx context.Context, permission string) bool {
+func (r *Resolver) checkPermissions(ctx context.Context, permission string, roles []string) bool {
 	user := ctx.Value(domain.ContextKeyID).(map[string]interface{})
 
 	userCache := &domain.UserCache{}
@@ -19,6 +19,12 @@ func (r *Resolver) checkPermissions(ctx context.Context, permission string) bool
 
 	if userCache.Role == "Admin" {
 		return true
+	}
+
+	for _, currentRole := range roles {
+		if currentRole == userCache.Role {
+			return true
+		}
 	}
 
 	for _, currentPermission := range userCache.Permissions {
