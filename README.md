@@ -8,6 +8,16 @@ It needs improvements, I know there is a lot that can be improved.
 
 In development.
 
+TODO:
+
+- Create mutation to assign role to user
+- Create mutation to assign permissions to user or role
+- Create query to refresh the token
+
+Improve:
+
+- How to authorize without repetition?
+
 ## Architecture
 
 Clean Architecture (Robin C. Martin).

@@ -109,6 +109,8 @@ func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) (*doma
 		return nil, err
 	}
 
+	newRole.Permissions = role.Permissions
+
 	return newRole, nil
 }
 
@@ -172,6 +174,8 @@ func (p *postgreRepository) Update(ctx context.Context, role *domain.Role) (*dom
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
+
+	newRole.Permissions = role.Permissions
 
 	return newRole, nil
 }
