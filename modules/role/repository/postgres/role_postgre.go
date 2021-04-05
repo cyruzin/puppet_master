@@ -28,15 +28,15 @@ func NewPostgreRoleRepository(
 func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.Role, error) {
 	query := `SELECT * FROM roles`
 
-	result := make([]*domain.Role, 0)
+	roles := []*domain.Role{}
 
-	err := p.Conn.SelectContext(ctx, &result, query)
+	err := p.Conn.SelectContext(ctx, &roles, query)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrFetchError
 	}
 
-	return result, nil
+	return roles, nil
 }
 
 func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Role, error) {

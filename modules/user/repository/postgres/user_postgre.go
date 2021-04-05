@@ -31,19 +31,19 @@ func NewPostgreUserRepository(
 func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.User, error) {
 	query := `SELECT * FROM users`
 
-	result := make([]*domain.User, 0)
+	users := []*domain.User{}
 
-	err := p.Conn.SelectContext(ctx, &result, query)
+	err := p.Conn.SelectContext(ctx, users, query)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrFetchError
 	}
 
-	return result, nil
+	return users, nil
 }
 
 func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.User, error) {
-	query := `SELECT * FROM users WHERE id = $1`
+	query := `SELECT * FROM users WHERE id=:id`
 
 	user := domain.User{}
 

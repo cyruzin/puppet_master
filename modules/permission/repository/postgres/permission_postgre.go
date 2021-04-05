@@ -22,15 +22,15 @@ func NewPostgrePermissionRepository(Conn *sqlx.DB) domain.PermissionRepository {
 func (p *postgreRepository) Fetch(ctx context.Context) ([]*domain.Permission, error) {
 	query := `SELECT * FROM permissions`
 
-	result := make([]*domain.Permission, 0)
+	permissions := []*domain.Permission{}
 
-	err := p.Conn.SelectContext(ctx, &result, query)
+	err := p.Conn.SelectContext(ctx, &permissions, query)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrFetchError
 	}
 
-	return result, nil
+	return permissions, nil
 }
 
 func (p *postgreRepository) GetByID(ctx context.Context, id int64) (*domain.Permission, error) {
