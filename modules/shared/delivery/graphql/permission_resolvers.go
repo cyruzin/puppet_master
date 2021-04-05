@@ -194,35 +194,6 @@ func (r *Resolver) PermissionGiveResolver(params graphql.ResolveParams) (interfa
 	return nil, nil
 }
 
-func (r *Resolver) PermissionRemoveResolver(params graphql.ResolveParams) (interface{}, error) {
-	if allow := r.authUseCase.Authorize(params.Context, "remove permission to role", nil); !allow {
-		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
-		return nil, domain.ErrUnauthorized
-	}
-
-	permissionParams, ok := params.Args["Permission"].(map[string]interface{})
-	if !ok {
-		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
-		return nil, domain.ErrBadRequest
-	}
-
-	roleID := permissionParams["role_id"].(int)
-
-	permissions := []int{}
-
-	if permissionParams["permissions"] != nil {
-		for _, permission := range permissionParams["permissions"].([]interface{}) {
-			permissions = append(permissions, permission.(int))
-		}
-	}
-
-	if err := r.permissionUseCase.RemovePermissionToRole(params.Context, permissions, int64(roleID)); err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
 func (r *Resolver) PermissionSyncResolver(params graphql.ResolveParams) (interface{}, error) {
 	if allow := r.authUseCase.Authorize(params.Context, "sync permission to role", nil); !allow {
 		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
@@ -250,4 +221,44 @@ func (r *Resolver) PermissionSyncResolver(params graphql.ResolveParams) (interfa
 	}
 
 	return nil, nil
+}
+
+func (r *Resolver) PermissionGetByRoleIDResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.authUseCase.Authorize(params.Context, "get permissions by role id", nil); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
+	roleID, ok := params.Args["ID"].(int)
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	permissions, err := r.permissionUseCase.GetPermissionsByRoleID(params.Context, int64(roleID))
+	if err != nil {
+		return nil, err
+	}
+
+	return permissions, nil
+}
+
+func (r *Resolver) PermissionGetByRoleNameResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.authUseCase.Authorize(params.Context, "get permissions by role name", nil); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
+	roleName, ok := params.Args["Name"].(string)
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	permissions, err := r.permissionUseCase.GetPermissionsByRoleName(params.Context, roleName)
+	if err != nil {
+		return nil, err
+	}
+
+	return permissions, nil
 }

@@ -34,6 +34,26 @@ func (r *Resolver) queryFields() graphql.Fields {
 			},
 			Resolve: r.PermissionQueryResolver,
 		},
+		"GetPermissionsByRoleID": &graphql.Field{
+			Type:        graphql.NewList(permissionType),
+			Description: "Get all permissions by role ID",
+			Args: graphql.FieldConfigArgument{
+				"ID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.Int),
+				},
+			},
+			Resolve: r.PermissionGetByRoleIDResolver,
+		},
+		"GetPermissionsByRoleName": &graphql.Field{
+			Type:        graphql.NewList(permissionType),
+			Description: "Get all permissions by role name",
+			Args: graphql.FieldConfigArgument{
+				"Name": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: r.PermissionGetByRoleNameResolver,
+		},
 
 		// Role
 		"FetchRoles": &graphql.Field{
@@ -104,7 +124,7 @@ func (r *Resolver) mutationFields() graphql.Fields {
 			Resolve: r.PermissionDeleteResolver,
 		},
 		"GivePermissionToRole": &graphql.Field{
-			Type: permissionType,
+			Type: permissionRoleType,
 			Args: graphql.FieldConfigArgument{
 				"Permission": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(permissionRoleInput),
@@ -112,17 +132,8 @@ func (r *Resolver) mutationFields() graphql.Fields {
 			},
 			Resolve: r.PermissionGiveResolver,
 		},
-		"RemovePermissionToRole": &graphql.Field{
-			Type: permissionType,
-			Args: graphql.FieldConfigArgument{
-				"Permission": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(permissionRoleInput),
-				},
-			},
-			Resolve: r.PermissionRemoveResolver,
-		},
 		"SyncPermissionToRole": &graphql.Field{
-			Type: permissionType,
+			Type: permissionRoleType,
 			Args: graphql.FieldConfigArgument{
 				"Permission": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(permissionRoleInput),

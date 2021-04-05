@@ -34,24 +34,32 @@ CREATE TABLE IF NOT EXISTS role_user (
 );
 
 
-INSERT INTO permissions ("id", "name", "description", "created_at", "updated_at") VALUES 
-(5,	'view user',	'Can view a user',	'2021-04-02 06:04:49.709798+00',	'2021-04-02 06:04:49.709798+00'), 
-(6,	'create user',	'Can create a user',	'2021-04-02 06:04:58.674248+00',	'2021-04-02 06:04:58.674248+00'), 
-(7,	'edit user',	'Can edit a user',	'2021-04-02 06:05:05.695544+00',	'2021-04-02 06:05:05.695544+00'), 
-(8,	'delete user',	'Can delete a user',	'2021-04-02 06:05:19.941473+00',	'2021-04-02 06:05:19.941473+00'), 
-(1,	'create role',	'Can create a role',	'2021-04-02 05:17:53.643469+00',	'2021-04-02 05:17:53.643469+00'), 
-(2,	'edit role',	'Can edit a role',	'2021-04-02 05:18:01.63039+00',	'2021-04-02 05:18:01.63039+00'), 
-(3,	'view role',	'Can view a role',	'2021-04-02 05:18:10.89572+00',	'2021-04-02 05:18:10.89572+00'), 
-(4,	'delete role',	'Can delete a role',	'2021-04-02 05:18:20.596286+00',	'2021-04-02 05:18:20.596286+00'), 
-(9,	'view permission',	'Can view permissions',	'2021-04-03 17:16:21.882724+00',	'2021-04-03 17:16:21.882724+00'), 
-(10,	'create permission',	'Can create permission',	'2021-04-03 17:16:38.100071+00',	'2021-04-03 17:16:38.100071+00'), 
-(11,	'edit permission',	'Can edit permission',	'2021-04-03 17:16:45.132572+00',	'2021-04-03 17:16:45.132572+00'), 
-(12,	'delete permission',	'Can delete permission',	'2021-04-03 17:16:53.457964+00',	'2021-04-03 17:16:53.457964+00');
+INSERT INTO permissions ("id", "name", "description", "created_at", "updated_at") VALUES
+(1,	'view user',	'Can view a user',	'2021-04-05 13:32:49.483076+00',	'2021-04-05 13:32:49.483076+00'),
+(2,	'create user',	'Can create user',	'2021-04-05 13:32:57.862105+00',	'2021-04-05 13:32:57.862105+00'),
+(3,	'edit user',	'Can edit user',	'2021-04-05 13:33:07.451287+00',	'2021-04-05 13:33:07.451287+00'),
+(4,	'delete user',	'Can delete user',	'2021-04-05 13:33:15.617075+00',	'2021-04-05 13:33:15.617075+00'),
+(5,	'view role',	'Can view role',	'2021-04-05 13:33:25.620844+00',	'2021-04-05 13:33:25.620844+00'),
+(6,	'create role',	'Can create role',	'2021-04-05 13:33:35.849704+00',	'2021-04-05 13:33:35.849704+00'),
+(7,	'edit role',	'Can edit role',	'2021-04-05 13:33:43.189558+00',	'2021-04-05 13:33:43.189558+00'),
+(8,	'delete role',	'Can delete role',	'2021-04-05 13:33:54.616185+00',	'2021-04-05 13:33:54.616185+00'),
+(9,	'view permission',	'Can view permission',	'2021-04-05 13:34:33.37066+00',	'2021-04-05 13:34:33.37066+00'),
+(10,	'create permission',	'Can create permission',	'2021-04-05 13:35:00.82438+00',	'2021-04-05 13:35:00.82438+00'),
+(11,	'edit permission',	'Can edit permission',	'2021-04-05 13:35:31.411928+00',	'2021-04-05 13:35:31.411928+00'),
+(12,	'delete permission',	'Can delete permission',	'2021-04-05 13:35:41.087124+00',	'2021-04-05 13:35:41.087124+00'),
+(13,	'give permission to role',	'Can give permission to role',	'2021-04-05 13:36:14.140329+00',	'2021-04-05 13:36:14.140329+00'),
+(14,	'remove permission to role',	'Can remove permission to role',	'2021-04-05 13:36:28.691047+00',	'2021-04-05 13:36:28.691047+00'),
+(15,	'sync permission to role',	'Can sync permission to role',	'2021-04-05 13:36:29.224283+00',	'2021-04-05 13:36:29.224283+00');
 
-INSERT INTO roles ("id", "name", "description", "created_at", "updated_at") VALUES 
-(1,	'Admin',	'Admin of the system',	'2021-04-02 05:19:12.73807+00',	'2021-04-02 05:19:12.73807+00');
+INSERT INTO roles ("id", "name", "description", "created_at", "updated_at") VALUES
+(1,	'Admin',	'Admin of the system',	'2021-04-05 13:37:48.531415+00',	'2021-04-05 13:37:48.531415+00');
 
-INSERT INTO users ("name", "email", "password", "created_at", "updated_at")  VALUES 
-('The Admin',	'admin@admin.com',	'$2a$06$DDKssq9NZAFGSGaLx8mjB.6Cl0NdnkQNSla49s8I6u1g8g7nmNK42',	'2021-04-02 05:25:28.999125+00',	'2021-04-02 05:25:28.999125+00');
+INSERT INTO users ("id", "name", "email", "password", "created_at", "updated_at") VALUES
+(1,	'The Admin',	'admin@admin.com',	'$2a$06$DDKssq9NZAFGSGaLx8mjB.6Cl0NdnkQNSla49s8I6u1g8g7nmNK42',	'2021-04-05 13:38:57.594285+00',	'2021-04-05 13:38:57.594285+00');
 
-INSERT INTO role_user ("role_id", "user_id") VALUES (1,	1);
+INSERT INTO "role_user" ("role_id", "user_id") VALUES (1,	1);
+
+-- Workaround to fix primary key out of sync
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users)+1);
+SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles)+1);
+SELECT setval('permissions_id_seq', (SELECT MAX(id) FROM permissions)+1);

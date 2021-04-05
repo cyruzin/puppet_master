@@ -282,6 +282,13 @@ func (p *postgreRepository) GivePermissionToRole(ctx context.Context, permission
 		err = tx.Commit()
 	}()
 
+	// If the function GivePermissionToRole is called instead of Sync function,
+	// previous permissions should be cleaned to avoid duplicates.
+	if err := p.RemovePermissionToRole(ctx, permissions, roleID); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrRemovePermission
+	}
+
 	query := `
 	  INSERT INTO permission_role ( 
 		 permission_id,
@@ -354,20 +361,17 @@ func (p *postgreRepository) SyncPermissionToRole(ctx context.Context, permission
 	}()
 
 	if len(permissions) > 0 {
-		err = p.RemovePermissionToRole(ctx, permissions, roleID)
-		if err != nil {
+		if err := p.RemovePermissionToRole(ctx, permissions, roleID); err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncPermission
 		}
 
-		err = p.GivePermissionToRole(ctx, permissions, roleID)
-		if err != nil {
+		if err := p.GivePermissionToRole(ctx, permissions, roleID); err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncPermission
 		}
 	} else {
-		err = p.RemovePermissionToRole(ctx, permissions, roleID)
-		if err != nil {
+		if err := p.RemovePermissionToRole(ctx, permissions, roleID); err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncPermission
 		}
