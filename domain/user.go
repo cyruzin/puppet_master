@@ -11,7 +11,6 @@ type User struct {
 	Name      string    `json:"name" validate:"required"`
 	Email     string    `json:"email" validate:"required,email"`
 	Password  string    `json:"-"`
-	Role      int       `json:"role,omitempty"`
 	UpdatedAt time.Time `json:"updated_at" db:"created_at"`
 	CreatedAt time.Time `json:"created_at" db:"updated_at"`
 }

@@ -23,6 +23,10 @@ type PermissionUsecase interface {
 	Delete(ctx context.Context, id int64) error
 
 	GetPermissionsByRoleID(ctx context.Context, roleID int64) ([]*Permission, error)
+	GetPermissionsByRoleName(ctx context.Context, roleName string) ([]*Permission, error)
+	GivePermissionToRole(ctx context.Context, permissions []int, roleID int64) error
+	RemovePermissionToRole(ctx context.Context, permissions []int, roleID int64) error
+	SyncPermissionToRole(ctx context.Context, permissions []int, roleID int64) error
 }
 
 // PermissionRepository represent the permission's repository contract.

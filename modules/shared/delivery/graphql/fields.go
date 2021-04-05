@@ -103,6 +103,33 @@ func (r *Resolver) mutationFields() graphql.Fields {
 			},
 			Resolve: r.PermissionDeleteResolver,
 		},
+		"GivePermissionToRole": &graphql.Field{
+			Type: permissionType,
+			Args: graphql.FieldConfigArgument{
+				"Permission": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(permissionRoleInput),
+				},
+			},
+			Resolve: r.PermissionGiveResolver,
+		},
+		"RemovePermissionToRole": &graphql.Field{
+			Type: permissionType,
+			Args: graphql.FieldConfigArgument{
+				"Permission": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(permissionRoleInput),
+				},
+			},
+			Resolve: r.PermissionRemoveResolver,
+		},
+		"SyncPermissionToRole": &graphql.Field{
+			Type: permissionType,
+			Args: graphql.FieldConfigArgument{
+				"Permission": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(permissionRoleInput),
+				},
+			},
+			Resolve: r.PermissionSyncResolver,
+		},
 
 		// Role
 		"CreateRole": &graphql.Field{

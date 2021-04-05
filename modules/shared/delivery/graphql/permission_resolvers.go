@@ -164,3 +164,90 @@ func updatePermissionValidation(params graphql.ResolveParams) (*domain.Permissio
 
 	return permission, nil
 }
+
+func (r *Resolver) PermissionGiveResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.authUseCase.Authorize(params.Context, "give permission to role", nil); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
+	permissionParams, ok := params.Args["Permission"].(map[string]interface{})
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	roleID := permissionParams["role_id"].(int)
+
+	permissions := []int{}
+
+	if permissionParams["permissions"] != nil {
+		for _, permission := range permissionParams["permissions"].([]interface{}) {
+			permissions = append(permissions, permission.(int))
+		}
+	}
+
+	if err := r.permissionUseCase.GivePermissionToRole(params.Context, permissions, int64(roleID)); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (r *Resolver) PermissionRemoveResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.authUseCase.Authorize(params.Context, "remove permission to role", nil); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
+	permissionParams, ok := params.Args["Permission"].(map[string]interface{})
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	roleID := permissionParams["role_id"].(int)
+
+	permissions := []int{}
+
+	if permissionParams["permissions"] != nil {
+		for _, permission := range permissionParams["permissions"].([]interface{}) {
+			permissions = append(permissions, permission.(int))
+		}
+	}
+
+	if err := r.permissionUseCase.RemovePermissionToRole(params.Context, permissions, int64(roleID)); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (r *Resolver) PermissionSyncResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.authUseCase.Authorize(params.Context, "sync permission to role", nil); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
+	permissionParams, ok := params.Args["Permission"].(map[string]interface{})
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	roleID := permissionParams["role_id"].(int)
+
+	permissions := []int{}
+
+	if permissionParams["permissions"] != nil {
+		for _, permission := range permissionParams["permissions"].([]interface{}) {
+			permissions = append(permissions, permission.(int))
+		}
+	}
+
+	if err := r.permissionUseCase.SyncPermissionToRole(params.Context, permissions, int64(roleID)); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}

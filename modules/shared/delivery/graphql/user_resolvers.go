@@ -140,7 +140,6 @@ func storeUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 	user := &domain.User{
 		Name:      userParams["name"].(string),
 		Email:     userParams["email"].(string),
-		Role:      userParams["role"].(int),
 		Password:  password,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -179,7 +178,6 @@ func updateUserValidation(params graphql.ResolveParams) (*domain.User, error) {
 		ID:        id,
 		Name:      userParams["name"].(string),
 		Email:     userParams["email"].(string),
-		Role:      userParams["role"].(int),
 		UpdatedAt: time.Now(),
 	}
 

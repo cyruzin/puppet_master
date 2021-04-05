@@ -46,3 +46,18 @@ var permissionInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
+
+var permissionRoleInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name:        "PermissionRoleInput",
+	Description: "Give/Remove/Sync permission for a role",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"role_id": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"permissions": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(&graphql.List{
+				OfType: graphql.Int,
+			}),
+		},
+	},
+})

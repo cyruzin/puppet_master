@@ -78,3 +78,40 @@ func (p *permissionUseCase) GetPermissionsByRoleID(ctx context.Context, roleID i
 
 	return permissions, nil
 }
+
+func (p *permissionUseCase) GetPermissionsByRoleName(ctx context.Context, roleName string) ([]*domain.Permission, error) {
+	permissions, err := p.permissionRepo.GetPermissionsByRoleName(ctx, roleName)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	return permissions, nil
+}
+
+func (p *permissionUseCase) GivePermissionToRole(ctx context.Context, permissions []int, roleID int64) error {
+	if err := p.permissionRepo.GivePermissionToRole(ctx, permissions, roleID); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (p *permissionUseCase) RemovePermissionToRole(ctx context.Context, permissions []int, roleID int64) error {
+	if err := p.permissionRepo.RemovePermissionToRole(ctx, permissions, roleID); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (p *permissionUseCase) SyncPermissionToRole(ctx context.Context, permissions []int, roleID int64) error {
+	if err := p.permissionRepo.SyncPermissionToRole(ctx, permissions, roleID); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return err
+	}
+
+	return nil
+}

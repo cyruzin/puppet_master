@@ -123,18 +123,9 @@ func storeRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
 		return nil, domain.ErrBadRequest
 	}
 
-	parsedPermissions := []int{}
-
-	if roleParams["permissions"] != nil {
-		for _, permission := range roleParams["permissions"].([]interface{}) {
-			parsedPermissions = append(parsedPermissions, permission.(int))
-		}
-	}
-
 	role := &domain.Role{
 		Name:        roleParams["name"].(string),
 		Description: roleParams["description"].(string),
-		Permissions: parsedPermissions,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -160,19 +151,10 @@ func updateRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
 		return nil, err
 	}
 
-	parsedPermissions := []int{}
-
-	if roleParams["permissions"] != nil {
-		for _, permission := range roleParams["permissions"].([]interface{}) {
-			parsedPermissions = append(parsedPermissions, permission.(int))
-		}
-	}
-
 	role := &domain.Role{
 		ID:          id,
 		Name:        roleParams["name"].(string),
 		Description: roleParams["description"].(string),
-		Permissions: parsedPermissions,
 		UpdatedAt:   time.Now(),
 	}
 

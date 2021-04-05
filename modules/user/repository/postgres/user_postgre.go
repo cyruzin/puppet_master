@@ -108,16 +108,6 @@ func (p *postgreRepository) Store(ctx context.Context, user *domain.User) (*doma
 		return nil, domain.ErrStoreError
 	}
 
-	if user.Role > 0 {
-		err = p.roleRepo.AssignRole(ctx, user.Role, lastID)
-		if err != nil {
-			log.Error().Stack().Err(err).Msg(err.Error())
-			return nil, err
-		}
-	}
-
-	newUser.Role = user.Role
-
 	return newUser, nil
 }
 
@@ -174,14 +164,6 @@ func (p *postgreRepository) Update(ctx context.Context, user *domain.User) (*dom
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, domain.ErrStoreError
 	}
-
-	err = p.roleRepo.SyncRole(ctx, user.Role, updatedUser.ID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return nil, err
-	}
-
-	updatedUser.Role = user.Role
 
 	return updatedUser, nil
 }

@@ -103,14 +103,6 @@ func (p *postgreRepository) Store(ctx context.Context, role *domain.Role) (*doma
 		return nil, err
 	}
 
-	err = p.permissionRepo.GivePermissionToRole(ctx, role.Permissions, newRole.ID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return nil, err
-	}
-
-	newRole.Permissions = role.Permissions
-
 	return newRole, nil
 }
 
@@ -163,19 +155,11 @@ func (p *postgreRepository) Update(ctx context.Context, role *domain.Role) (*dom
 		return nil, domain.ErrNotFound
 	}
 
-	err = p.permissionRepo.SyncPermissionToRole(ctx, role.Permissions, role.ID)
-	if err != nil {
-		log.Error().Stack().Err(err).Msg(err.Error())
-		return nil, err
-	}
-
 	newRole, err := p.GetByID(ctx, role.ID)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
 		return nil, err
 	}
-
-	newRole.Permissions = role.Permissions
 
 	return newRole, nil
 }
