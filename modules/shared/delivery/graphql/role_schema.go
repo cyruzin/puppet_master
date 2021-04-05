@@ -46,3 +46,28 @@ var roleInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
+
+var assingRoleToUserType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "AssignRoleToUser",
+	Fields: graphql.Fields{
+		"role_id": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"user_id": &graphql.Field{
+			Type: graphql.Int,
+		},
+	},
+})
+
+var assingRoleToUserTypeInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name:        "AssingRoleToUserTypeInput",
+	Description: "Assign/Sync role to a user",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"role_id": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"user_id": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+	},
+})

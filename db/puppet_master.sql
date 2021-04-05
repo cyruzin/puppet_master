@@ -49,7 +49,12 @@ INSERT INTO permissions ("id", "name", "description", "created_at", "updated_at"
 (12,	'delete permission',	'Can delete permission',	'2021-04-05 13:35:41.087124+00',	'2021-04-05 13:35:41.087124+00'),
 (13,	'give permission to role',	'Can give permission to role',	'2021-04-05 13:36:14.140329+00',	'2021-04-05 13:36:14.140329+00'),
 (14,	'remove permission to role',	'Can remove permission to role',	'2021-04-05 13:36:28.691047+00',	'2021-04-05 13:36:28.691047+00'),
-(15,	'sync permission to role',	'Can sync permission to role',	'2021-04-05 13:36:29.224283+00',	'2021-04-05 13:36:29.224283+00');
+(15,	'sync permission to role',	'Can sync permission to role',	'2021-04-05 13:36:29.224283+00',	'2021-04-05 13:36:29.224283+00'),
+(17,	'get permissions by role id',	'Can get all permissions by role ID',	'2021-04-05 16:16:01.848115+00',	'2021-04-05 16:16:01.848115+00'),
+(18,	'get permissions by role name',	'Can get all permissions by role name',	'2021-04-05 16:16:11.306257+00',	'2021-04-05 16:16:11.306257+00'),
+(19,	'assign role by user id',	'Can assign role to a user',	'2021-04-05 16:56:57.919265+00',	'2021-04-05 16:56:57.919265+00'),
+(20,	'sync role by user id',	'Can sync user role',	'2021-04-05 16:57:24.087477+00',	'2021-04-05 16:57:24.087477+00'),
+(21,	'get role by user id',	'Can get user role',	'2021-04-05 16:58:03.285812+00',	'2021-04-05 16:58:03.285812+00');
 
 INSERT INTO roles ("id", "name", "description", "created_at", "updated_at") VALUES
 (1,	'Admin',	'Admin of the system',	'2021-04-05 13:37:48.531415+00',	'2021-04-05 13:37:48.531415+00');

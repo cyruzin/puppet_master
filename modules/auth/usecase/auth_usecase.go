@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cyruzin/puppet_master/domain"
@@ -90,6 +91,9 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 	}
 
 	userCache := &domain.UserCache{}
+
+	fmt.Println(user)
+	fmt.Println(role)
 
 	if role != nil {
 		userCache.ID = user.ID

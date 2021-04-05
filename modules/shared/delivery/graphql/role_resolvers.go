@@ -165,3 +165,85 @@ func updateRoleValidation(params graphql.ResolveParams) (*domain.Role, error) {
 
 	return role, nil
 }
+
+func (r *Resolver) RoleGetByUserIDResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.authUseCase.Authorize(params.Context, "get role by user id", nil); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
+	userID, ok := params.Args["ID"].(int)
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	role, err := r.roleUseCase.GetRoleByUserID(params.Context, int64(userID))
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
+}
+
+func (r *Resolver) RoleAssignResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.authUseCase.Authorize(params.Context, "assign role by user id", nil); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
+	roleParams, ok := params.Args["Role"].(map[string]interface{})
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	roleID, ok := roleParams["role_id"].(int)
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	userID, ok := roleParams["user_id"].(int)
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	if err := r.roleUseCase.AssignRoleToUser(params.Context, roleID, int64(userID)); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (r *Resolver) RoleSyncResolver(params graphql.ResolveParams) (interface{}, error) {
+	if allow := r.authUseCase.Authorize(params.Context, "sync role by user id", nil); !allow {
+		log.Error().Err(domain.ErrUnauthorized).Stack().Msg(domain.ErrUnauthorized.Error())
+		return nil, domain.ErrUnauthorized
+	}
+
+	roleParams, ok := params.Args["Role"].(map[string]interface{})
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	roleID, ok := roleParams["role_id"].(int)
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	userID, ok := roleParams["user_id"].(int)
+	if !ok {
+		log.Error().Stack().Msg(domain.ErrBadRequest.Error())
+		return nil, domain.ErrBadRequest
+	}
+
+	if err := r.roleUseCase.SyncRoleToUser(params.Context, roleID, int64(userID)); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}

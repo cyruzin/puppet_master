@@ -23,6 +23,8 @@ type RoleUsecase interface {
 	Delete(ctx context.Context, id int64) error
 
 	GetRoleByUserID(ctx context.Context, userID int64) (*Role, error)
+	AssignRoleToUser(ctx context.Context, role int, userID int64) error
+	SyncRoleToUser(ctx context.Context, role int, userID int64) error
 }
 
 // RoleRepository represent the role's repository contract.
@@ -34,7 +36,7 @@ type RoleRepository interface {
 	Delete(ctx context.Context, id int64) error
 
 	GetRoleByUserID(ctx context.Context, userID int64) (*Role, error)
-	AssignRole(ctx context.Context, role int, userID int64) error
-	RemoveRole(ctx context.Context, role int, userID int64) error
-	SyncRole(ctx context.Context, role int, userID int64) error
+	AssignRoleToUser(ctx context.Context, role int, userID int64) error
+	RemoveRoleToUser(ctx context.Context, role int, userID int64) error
+	SyncRoleToUser(ctx context.Context, role int, userID int64) error
 }

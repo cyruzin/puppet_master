@@ -83,3 +83,21 @@ func (r *roleUseCase) GetRoleByUserID(ctx context.Context, userID int64) (*domai
 
 	return role, nil
 }
+
+func (r *roleUseCase) AssignRoleToUser(ctx context.Context, role int, userID int64) error {
+	if err := r.roleRepo.AssignRoleToUser(ctx, role, userID); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *roleUseCase) SyncRoleToUser(ctx context.Context, role int, userID int64) error {
+	if err := r.roleRepo.SyncRoleToUser(ctx, role, userID); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return err
+	}
+
+	return nil
+}

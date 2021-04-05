@@ -238,7 +238,7 @@ func (p *postgreRepository) GetRoleByUserID(ctx context.Context, userID int64) (
 	return role, nil
 }
 
-func (p *postgreRepository) AssignRole(ctx context.Context, role int, userID int64) error {
+func (p *postgreRepository) AssignRoleToUser(ctx context.Context, role int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -252,6 +252,13 @@ func (p *postgreRepository) AssignRole(ctx context.Context, role int, userID int
 		}
 		err = tx.Commit()
 	}()
+
+	// If the function AssignRoleToUser is called instead of Sync function,
+	// previous role should be cleaned to avoid duplicates.
+	if err := p.RemoveRoleToUser(ctx, role, userID); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return domain.ErrRemovePermission
+	}
 
 	query := `
 	INSERT INTO role_user ( 
@@ -275,7 +282,7 @@ func (p *postgreRepository) AssignRole(ctx context.Context, role int, userID int
 	return nil
 }
 
-func (p *postgreRepository) RemoveRole(ctx context.Context, role int, userID int64) error {
+func (p *postgreRepository) RemoveRoleToUser(ctx context.Context, role int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -305,7 +312,7 @@ func (p *postgreRepository) RemoveRole(ctx context.Context, role int, userID int
 	return nil
 }
 
-func (p *postgreRepository) SyncRole(ctx context.Context, role int, userID int64) error {
+func (p *postgreRepository) SyncRoleToUser(ctx context.Context, role int, userID int64) error {
 	tx, err := p.Conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		log.Error().Stack().Err(err).Msg(err.Error())
@@ -321,19 +328,19 @@ func (p *postgreRepository) SyncRole(ctx context.Context, role int, userID int64
 	}()
 
 	if role > 0 {
-		err = p.RemoveRole(ctx, role, userID)
+		err = p.RemoveRoleToUser(ctx, role, userID)
 		if err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncRole
 		}
 
-		err = p.AssignRole(ctx, role, userID)
+		err = p.AssignRoleToUser(ctx, role, userID)
 		if err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncRole
 		}
 	} else {
-		err = p.RemoveRole(ctx, role, userID)
+		err = p.RemoveRoleToUser(ctx, role, userID)
 		if err != nil {
 			log.Error().Stack().Err(err).Msg(err.Error())
 			return domain.ErrSyncRole

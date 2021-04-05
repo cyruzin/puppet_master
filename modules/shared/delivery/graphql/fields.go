@@ -71,6 +71,16 @@ func (r *Resolver) queryFields() graphql.Fields {
 			},
 			Resolve: r.RoleQueryResolver,
 		},
+		"GetRolesByUserID": &graphql.Field{
+			Type:        roleType,
+			Description: "Get role by user ID",
+			Args: graphql.FieldConfigArgument{
+				"ID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.Int),
+				},
+			},
+			Resolve: r.RoleGetByUserIDResolver,
+		},
 
 		// User
 		"FetchUsers": &graphql.Field{
@@ -169,6 +179,24 @@ func (r *Resolver) mutationFields() graphql.Fields {
 				},
 			},
 			Resolve: r.RoleDeleteResolver,
+		},
+		"AssignRoleToUser": &graphql.Field{
+			Type: assingRoleToUserType,
+			Args: graphql.FieldConfigArgument{
+				"Role": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(assingRoleToUserTypeInput),
+				},
+			},
+			Resolve: r.RoleAssignResolver,
+		},
+		"SyncRoleToUser": &graphql.Field{
+			Type: assingRoleToUserType,
+			Args: graphql.FieldConfigArgument{
+				"Role": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(assingRoleToUserTypeInput),
+				},
+			},
+			Resolve: r.RoleSyncResolver,
 		},
 
 		// User
