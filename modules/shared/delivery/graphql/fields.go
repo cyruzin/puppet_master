@@ -17,6 +17,16 @@ func (r *Resolver) queryFields() graphql.Fields {
 			},
 			Resolve: r.AuthQueryResolver,
 		},
+		"RefreshToken": &graphql.Field{
+			Type:        authType,
+			Description: "Refreshes the token",
+			Args: graphql.FieldConfigArgument{
+				"UserID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.Int),
+				},
+			},
+			Resolve: r.AuthRefreshTokenResolver,
+		},
 
 		// Permission
 		"FetchPermissions": &graphql.Field{

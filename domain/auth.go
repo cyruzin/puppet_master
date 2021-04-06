@@ -30,6 +30,7 @@ type AuthUsecase interface {
 	Authenticate(ctx context.Context, email, password string) (*AuthToken, error)
 	Authorize(ctx context.Context, permission string, role []string) bool
 	GenerateToken(claimKey string, claimValue interface{}, expiration time.Time) (string, error)
+	RefreshToken(ctx context.Context, userID int64) (*AuthToken, error)
 	// ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (bool, error)
 	// ResetPassword(ctx context.Context, email string) (bool, error)
 }

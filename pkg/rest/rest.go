@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -39,7 +38,6 @@ func DecodeJSON(r io.Reader, payload interface{}) error {
 
 // ParseID parses the given ID to int64.
 func ParseID(sid string) (int64, error) {
-	fmt.Println(sid)
 	id, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {
 		return 0, err

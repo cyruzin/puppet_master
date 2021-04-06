@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/cyruzin/puppet_master/domain"
@@ -64,7 +63,7 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 		Role:   role.Name,
 	}
 
-	expiration := time.Duration(time.Hour * viper.GetDuration(`jwt.token_expiration`))
+	expiration := time.Duration(time.Minute * viper.GetDuration(`jwt.token_expiration`))
 	tokenExpiration := time.Now().Add(expiration)
 
 	token, err := a.GenerateToken("user", auth, tokenExpiration)
@@ -91,9 +90,6 @@ func (a *authUseCase) Authenticate(ctx context.Context, email, password string) 
 	}
 
 	userCache := &domain.UserCache{}
-
-	fmt.Println(user)
-	fmt.Println(role)
 
 	if role != nil {
 		userCache.ID = user.ID
@@ -206,4 +202,75 @@ func (a *authUseCase) saveToken(
 	}
 
 	return nil
+}
+
+func (a *authUseCase) RefreshToken(ctx context.Context, userID int64) (*domain.AuthToken, error) {
+	user, err := a.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	role, err := a.roleRepo.GetRoleByUserID(ctx, user.ID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	auth := &domain.Auth{
+		UserID: user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Role:   role.Name,
+	}
+
+	expiration := time.Duration(time.Minute * viper.GetDuration(`jwt.token_expiration`))
+	tokenExpiration := time.Now().Add(expiration)
+
+	token, err := a.GenerateToken("user", auth, tokenExpiration)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	auth.Token = token
+
+	refreshToken, err := a.refreshToken(
+		"user",
+		user.ID,
+		time.Now().AddDate(0, 0, viper.GetInt(`jwt.refresh_token_expiration`)),
+	)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	payload := &domain.AuthToken{
+		Token:        token,
+		RefreshToken: refreshToken,
+	}
+
+	userCache := &domain.UserCache{}
+
+	if role != nil {
+		userCache.ID = user.ID
+		userCache.Role = role.Name
+
+		permissions, err := a.permissionRepo.GetPermissionsByRoleName(ctx, role.Name)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg(err.Error())
+			return nil, err
+		}
+
+		for _, permission := range permissions {
+			userCache.Permissions = append(userCache.Permissions, permission.Name)
+		}
+	}
+
+	if err := a.saveToken(ctx, user.Email, userCache, expiration); err != nil {
+		log.Error().Stack().Err(err).Msg(err.Error())
+		return nil, err
+	}
+
+	return payload, nil
 }

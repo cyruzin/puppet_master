@@ -125,6 +125,7 @@ func main() {
 			"Accept",
 			"Authorization",
 			"Content-Type",
+			"X-Refresh-Token",
 		},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,

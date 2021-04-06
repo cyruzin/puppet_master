@@ -38,6 +38,41 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 // headers and if it is valid.
 func TokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		refreshTokenHeader := r.Header.Get("X-Refresh-Token")
+
+		if r.Header.Get(refreshTokenHeader) != "" {
+			if refreshTokenHeader == "" {
+				ctx := context.WithValue(r.Context(), domain.ContextKeyID, "")
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+
+			// Checking if the header contains Bearer string and if the token exists.
+			if !strings.Contains(refreshTokenHeader, "Bearer") || len(strings.Split(refreshTokenHeader, "Bearer ")) == 1 {
+				rest.EncodeErrorGraphql(w, r, errors.New("malformed token"))
+				return
+			}
+
+			// Capturing the refresh token.
+			jwtString := strings.Split(refreshTokenHeader, "Bearer ")[1]
+
+			// Parsing the refresh token to verify its authenticity.
+			token, err := jwt.ParseString(jwtString, jwt.WithVerify(jwa.HS256, []byte(viper.GetString(`jwt.secret`))))
+			if err != nil {
+				rest.EncodeErrorGraphql(w, r, err)
+				return
+			}
+
+			// Validating the content.
+			if err := jwt.Validate(token); err != nil {
+				rest.EncodeErrorGraphql(w, r, errors.New("invalid token"))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
