@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cyruzin/puppet_master/domain"
-	"github.com/cyruzin/puppet_master/pkg/rest"
+	"github.com/cyruzin/puppet_master/pkg/enc"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rs/zerolog/log"
@@ -49,7 +49,7 @@ func TokenMiddleware(next http.Handler) http.Handler {
 
 			// Checking if the header contains Bearer string and if the token exists.
 			if !strings.Contains(refreshTokenHeader, "Bearer") || len(strings.Split(refreshTokenHeader, "Bearer ")) == 1 {
-				rest.EncodeErrorGraphql(w, r, errors.New("malformed token"))
+				enc.EncodeErrorGraphql(w, r, errors.New("malformed token"))
 				return
 			}
 
@@ -59,13 +59,13 @@ func TokenMiddleware(next http.Handler) http.Handler {
 			// Parsing the refresh token to verify its authenticity.
 			token, err := jwt.ParseString(jwtString, jwt.WithVerify(jwa.HS256, []byte(viper.GetString(`jwt.secret`))))
 			if err != nil {
-				rest.EncodeErrorGraphql(w, r, err)
+				enc.EncodeErrorGraphql(w, r, err)
 				return
 			}
 
 			// Validating the content.
 			if err := jwt.Validate(token); err != nil {
-				rest.EncodeErrorGraphql(w, r, errors.New("invalid token"))
+				enc.EncodeErrorGraphql(w, r, errors.New("invalid token"))
 				return
 			}
 
@@ -83,7 +83,7 @@ func TokenMiddleware(next http.Handler) http.Handler {
 
 		// Checking if the header contains Bearer string and if the token exists.
 		if !strings.Contains(authHeader, "Bearer") || len(strings.Split(authHeader, "Bearer ")) == 1 {
-			rest.EncodeErrorGraphql(w, r, errors.New("malformed token"))
+			enc.EncodeErrorGraphql(w, r, errors.New("malformed token"))
 			return
 		}
 
@@ -93,19 +93,19 @@ func TokenMiddleware(next http.Handler) http.Handler {
 		// Parsing the token to verify its authenticity.
 		token, err := jwt.ParseString(jwtString, jwt.WithVerify(jwa.HS256, []byte(viper.GetString(`jwt.secret`))))
 		if err != nil {
-			rest.EncodeErrorGraphql(w, r, err)
+			enc.EncodeErrorGraphql(w, r, err)
 			return
 		}
 
 		// Validating the content.
 		if err := jwt.Validate(token); err != nil {
-			rest.EncodeErrorGraphql(w, r, errors.New("invalid token"))
+			enc.EncodeErrorGraphql(w, r, errors.New("invalid token"))
 			return
 		}
 
 		userInfo, ok := token.PrivateClaims()["user"].(map[string]interface{})
 		if !ok {
-			rest.EncodeErrorGraphql(w, r, errors.New("failed to retrieve private claims"))
+			enc.EncodeErrorGraphql(w, r, errors.New("failed to retrieve private claims"))
 			return
 		}
 

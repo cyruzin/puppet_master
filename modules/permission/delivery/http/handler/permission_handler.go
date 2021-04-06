@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cyruzin/puppet_master/domain"
-	"github.com/cyruzin/puppet_master/pkg/rest"
+	"github.com/cyruzin/puppet_master/pkg/enc"
 	"github.com/cyruzin/puppet_master/pkg/validation"
 	"github.com/go-chi/chi/v5"
 )
@@ -34,41 +34,41 @@ func NewArticleHandler(c *chi.Mux, p domain.PermissionUsecase) {
 func (p *PermissionHandler) Fetch(w http.ResponseWriter, r *http.Request) {
 	permissions, err := p.PermissionUseCase.Fetch(r.Context())
 	if err != nil {
-		rest.EncodeError(w, r, err, http.StatusInternalServerError)
+		enc.EncodeError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 
-	rest.EncodeJSON(w, http.StatusOK, permissions)
+	enc.EncodeJSON(w, http.StatusOK, permissions)
 }
 
 func (p *PermissionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, err := rest.ParseID(chi.URLParam(r, "id"))
+	id, err := enc.ParseID(chi.URLParam(r, "id"))
 	if err != nil {
-		rest.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
+		enc.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
 		return
 	}
 
 	permission, err := p.PermissionUseCase.GetByID(r.Context(), id)
 	if err != nil {
-		rest.EncodeError(w, r, err, http.StatusInternalServerError)
+		enc.EncodeError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 
-	rest.EncodeJSON(w, http.StatusOK, permission)
+	enc.EncodeJSON(w, http.StatusOK, permission)
 }
 
 func (p *PermissionHandler) Store(w http.ResponseWriter, r *http.Request) {
 	payload := &domain.Permission{}
 
-	if err := rest.DecodeJSON(r.Body, payload); err != nil {
-		rest.EncodeError(w, r, err, http.StatusBadRequest)
+	if err := enc.DecodeJSON(r.Body, payload); err != nil {
+		enc.EncodeError(w, r, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx := r.Context()
 
 	if err := validation.IsAValidSchema(ctx, payload); err != nil {
-		rest.EncodeError(w, r, err, http.StatusBadRequest)
+		enc.EncodeError(w, r, err, http.StatusBadRequest)
 		return
 	}
 
@@ -77,31 +77,31 @@ func (p *PermissionHandler) Store(w http.ResponseWriter, r *http.Request) {
 
 	permissions, err := p.PermissionUseCase.Store(ctx, payload)
 	if err != nil {
-		rest.EncodeError(w, r, err, http.StatusBadRequest)
+		enc.EncodeError(w, r, err, http.StatusBadRequest)
 		return
 	}
 
-	rest.EncodeJSON(w, http.StatusCreated, permissions)
+	enc.EncodeJSON(w, http.StatusCreated, permissions)
 }
 
 func (p *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := rest.ParseID(chi.URLParam(r, "id"))
+	id, err := enc.ParseID(chi.URLParam(r, "id"))
 	if err != nil {
-		rest.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
+		enc.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
 		return
 	}
 
 	payload := &domain.Permission{}
 
-	if err := rest.DecodeJSON(r.Body, payload); err != nil {
-		rest.EncodeError(w, r, err, http.StatusBadRequest)
+	if err := enc.DecodeJSON(r.Body, payload); err != nil {
+		enc.EncodeError(w, r, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx := r.Context()
 
 	if err := validation.IsAValidSchema(ctx, payload); err != nil {
-		rest.EncodeError(w, r, err, http.StatusBadRequest)
+		enc.EncodeError(w, r, err, http.StatusBadRequest)
 		return
 	}
 
@@ -110,24 +110,24 @@ func (p *PermissionHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	permissions, err := p.PermissionUseCase.Update(ctx, payload)
 	if err != nil {
-		rest.EncodeError(w, r, err, http.StatusBadRequest)
+		enc.EncodeError(w, r, err, http.StatusBadRequest)
 		return
 	}
 
-	rest.EncodeJSON(w, http.StatusOK, permissions)
+	enc.EncodeJSON(w, http.StatusOK, permissions)
 }
 
 func (p *PermissionHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	id, err := rest.ParseID(chi.URLParam(r, "id"))
+	id, err := enc.ParseID(chi.URLParam(r, "id"))
 	if err != nil {
-		rest.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
+		enc.EncodeError(w, r, domain.ErrIDParam, http.StatusBadRequest)
 		return
 	}
 
 	if err := p.PermissionUseCase.Delete(r.Context(), id); err != nil {
-		rest.EncodeError(w, r, err, http.StatusBadRequest)
+		enc.EncodeError(w, r, err, http.StatusBadRequest)
 		return
 	}
 
-	rest.EncodeJSON(w, http.StatusOK, &rest.APIMessage{Message: "permission deleted", Status: http.StatusOK})
+	enc.EncodeJSON(w, http.StatusOK, &enc.APIMessage{Message: "permission deleted", Status: http.StatusOK})
 }

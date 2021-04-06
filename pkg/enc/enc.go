@@ -1,4 +1,4 @@
-package rest
+package enc
 
 import (
 	"encoding/json"

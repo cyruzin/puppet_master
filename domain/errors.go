@@ -53,4 +53,7 @@ var (
 	ErrCacheMarshalling = errors.New("failed to marshal the cache")
 	// ErrCacheUnmarshalling will throw if failed to unmarshal the cache key
 	ErrCacheUnmarshalling = errors.New("failed to unmarshal the cache key")
+
+	// ErrUserID will throw if the ID is invalid
+	ErrUserID = errors.New("invalid user id")
 )

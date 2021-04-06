@@ -1,8 +1,6 @@
 package gql
 
 import (
-	"errors"
-
 	"github.com/cyruzin/puppet_master/domain"
 	"github.com/cyruzin/puppet_master/pkg/validation"
 	"github.com/graphql-go/graphql"
@@ -30,8 +28,8 @@ func (r *Resolver) AuthQueryResolver(params graphql.ResolveParams) (interface{},
 func (r *Resolver) AuthRefreshTokenResolver(params graphql.ResolveParams) (interface{}, error) {
 	userID, ok := params.Args["UserID"].(int)
 	if !ok {
-		log.Error().Stack().Msg("invalid user id")
-		return nil, errors.New("invalid user id")
+		log.Error().Stack().Msg(domain.ErrUserID.Error())
+		return nil, domain.ErrUserID
 	}
 
 	payload, err := r.authUseCase.RefreshToken(params.Context, int64(userID))
